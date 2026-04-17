@@ -72,6 +72,7 @@ class Widget_Builder_AI_Assets {
 				'restUrl'      => esc_url_raw( rest_url( 'widget-builder-ai/v1/' ) ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'currentPostId'=> $current_post_id,
+				'isDevelopment'=> ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) || ( defined( 'WP_DEBUG' ) && WP_DEBUG ),
 			)
 		);
 	}

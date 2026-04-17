@@ -8,7 +8,7 @@ import useBuilderPageLayout from './hooks/useBuilderPageLayout';
 import useEditWidgetButtonHandler from './hooks/useEditWidgetButtonHandler';
 import { APP_ACTIONS } from './reducers/appReducer.js';
 import { useAppContext } from './store/AppContext';
-
+import { Fragment } from 'react';
 /**
  * Renders the main application shell and hydrates existing widget state.
  *
@@ -52,12 +52,12 @@ export default function App() {
 		return () => {
 			mounted = false;
 		};
-	}, [currentWidgetId, dispatch]);
+	}, [currentWidgetId]);
 
 	return (
-		<>
+		<Fragment>
 			<WidgetSetupPopup />
 			<BuilderPage />
-		</>
+		</Fragment>
 	);
 }
