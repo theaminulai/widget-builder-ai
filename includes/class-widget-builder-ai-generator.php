@@ -39,7 +39,7 @@ class Widget_Builder_AI_Generator {
 	/**
 	 * AI handler instance.
 	 *
-	 * @var Widget_Builder_AI_AI_Handler
+	 * @var Widget_Builder_AI_Handler
 	 */
 	private $ai_handler;
 
@@ -54,7 +54,7 @@ class Widget_Builder_AI_Generator {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->ai_handler      = new Widget_Builder_AI_AI_Handler();
+		$this->ai_handler      = new Widget_Builder_AI_Handler();
 		$this->version_manager = new Widget_Builder_AI_Version_Manager();
 	}
 

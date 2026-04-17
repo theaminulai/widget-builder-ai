@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Handles the orchestration of AI providers to generate widget specifications.
  */
-class Widget_Builder_AI_AI_Handler {
+class Widget_Builder_AI_Handler {
 
 	/**
 	 * Claude adapter instance.
