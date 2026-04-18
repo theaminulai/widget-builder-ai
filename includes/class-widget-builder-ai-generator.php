@@ -583,9 +583,21 @@ class Widget_Builder_AI_Generator {
 			return 0;
 		}
 
-		$existing = get_page_by_title( $widget_title, OBJECT, 'widget_builder_ai' );
-		if ( $existing && ! empty( $existing->ID ) ) {
-			return absint( $existing->ID );
+		$existing = get_posts(
+			array(
+				'post_type'        => 'widget_builder_ai',
+				'post_status'      => 'any',
+				'title'            => $widget_title,
+				'numberposts'      => 1,
+				'orderby'          => 'ID',
+				'order'            => 'ASC',
+				'fields'           => 'ids',
+				'suppress_filters' => true,
+			)
+		);
+
+		if ( ! empty( $existing[0] ) ) {
+			return absint( $existing[0] );
 		}
 
 		return 0;
