@@ -6,7 +6,7 @@ import {
 	Plus,
 	RotateCcw,
 	Sidebar,
-	Sparkles
+	Sparkles,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { widgetApi } from '../../api/widgetApi';
@@ -41,9 +41,9 @@ const ChatSection = () => {
 		widgetConfig,
 		currentWidgetId,
 	} = useAppContext();
-	
-	const [inputValue, setInputValue] = useState('');
-	const messagesEndRef = useRef(null);
+
+	const [ inputValue, setInputValue ] = useState( '' );
+	const messagesEndRef = useRef( null );
 
 	/**
 	 * Scrolls the chat list to the newest message.
@@ -51,12 +51,12 @@ const ChatSection = () => {
 	 * @return {void}
 	 */
 	const scrollToBottom = () => {
-		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+		messagesEndRef.current?.scrollIntoView( { behavior: 'smooth' } );
 	};
 
-	useEffect(() => {
+	useEffect( () => {
 		scrollToBottom();
-	}, [chatMessages]);
+	}, [ chatMessages ] );
 
 	/**
 	 * Sends the current prompt to the generate endpoint and applies response.
@@ -64,92 +64,95 @@ const ChatSection = () => {
 	 * @return {Promise<void>} Promise that resolves when send flow finishes.
 	 */
 	const handleSend = async () => {
-		if (!inputValue.trim()) return;
+		if ( ! inputValue.trim() ) return;
 		const message = inputValue;
 		const start = performance.now();
 
-		dispatch({
+		dispatch( {
 			type: APP_ACTIONS.ADD_CHAT_MESSAGE,
 			payload: {
 				role: 'user',
 				content: message,
 			},
-		});
+		} );
 
-		setInputValue('');
+		setInputValue( '' );
 		// Reset textarea height
-		const textarea = document.querySelector('.chat-input');
-		if (textarea) textarea.style.height = 'auto';
+		const textarea = document.querySelector( '.chat-input' );
+		if ( textarea ) textarea.style.height = 'auto';
 
-		dispatch({ type: APP_ACTIONS.SET_AI_ERROR, payload: '' });
-		dispatch({
+		dispatch( { type: APP_ACTIONS.SET_AI_ERROR, payload: '' } );
+		dispatch( {
 			type: APP_ACTIONS.SET_STATUS_MESSAGE,
 			payload: 'Tinkering...',
-		});
-		
+		} );
+
 		try {
-			const result = await widgetApi.generate({
+			const result = await widgetApi.generate( {
 				message,
 				model: selectedModel,
 				widget_config: widgetConfig,
 				widget_id: currentWidgetId || 0,
-			});
+			} );
 
-			dispatch({
+			dispatch( {
 				type: APP_ACTIONS.ADD_CHAT_MESSAGE,
 				payload: {
 					role: 'assistant',
 					content: result.summary || 'Generation completed.',
 				},
-			});
+			} );
 
-			dispatch({
+			dispatch( {
 				type: APP_ACTIONS.SET_WIDGET_ID,
 				payload: result.widget_id,
-			});
-			dispatch({
+			} );
+			dispatch( {
 				type: APP_ACTIONS.SET_PREVIEW_URL,
 				payload: result.preview_url || '',
-			});
-			dispatch({
+			} );
+			dispatch( {
 				type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 				payload: { title: result?.title || '' },
-			});
+			} );
 
-			if (result.files) {
-				dispatch({
+			if ( result.files ) {
+				dispatch( {
 					type: APP_ACTIONS.SET_STATUS_MESSAGE,
 					payload: 'Applying generated...',
-				});
-				Object.entries(result.files).forEach(([filename, content]) => {
-					dispatch({
-						type: APP_ACTIONS.UPDATE_FILE,
-						payload: { filename, content: content || '' },
-					});
-				});
-				dispatch({
+				} );
+				Object.entries( result.files ).forEach(
+					( [ filename, content ] ) => {
+						dispatch( {
+							type: APP_ACTIONS.UPDATE_FILE,
+							payload: { filename, content: content || '' },
+						} );
+					}
+				);
+				dispatch( {
 					type: APP_ACTIONS.SET_CURRENT_FILE,
 					payload: 'widget.php',
-				});
+				} );
 			}
-		} catch (error) {
-			dispatch({
+		} catch ( error ) {
+			dispatch( {
 				type: APP_ACTIONS.SET_AI_ERROR,
-				payload: error.message || 'Generation failed, Please try again.',
-			});
-			dispatch({
+				payload:
+					error.message || 'Generation failed, Please try again.',
+			} );
+			dispatch( {
 				type: APP_ACTIONS.ADD_CHAT_MESSAGE,
 				payload: {
 					role: 'assistant',
-					content: `Generation failed, Please try again: ${error.message}`,
+					content: `Generation failed, Please try again: ${ error.message }`,
 				},
-			});
+			} );
 		} finally {
-			dispatch({
+			dispatch( {
 				type: APP_ACTIONS.SET_REQUEST_LATENCY,
-				payload: Math.round(performance.now() - start),
-			});
-			dispatch({ type: APP_ACTIONS.SET_STATUS_MESSAGE, payload: '' });
+				payload: Math.round( performance.now() - start ),
+			} );
+			dispatch( { type: APP_ACTIONS.SET_STATUS_MESSAGE, payload: '' } );
 		}
 	};
 
@@ -159,8 +162,8 @@ const ChatSection = () => {
 	 * @param {KeyboardEvent} e Keyboard event.
 	 * @return {void}
 	 */
-	const handleKeyDown = (e) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
+	const handleKeyDown = ( e ) => {
+		if ( e.key === 'Enter' && ! e.shiftKey ) {
 			e.preventDefault();
 			handleSend();
 		}
@@ -172,48 +175,50 @@ const ChatSection = () => {
 	 * @param {{text: string}} suggestion Suggested prompt item.
 	 * @return {void}
 	 */
-	const handleSuggestionClick = (suggestion) => {
-		setInputValue(suggestion.text);
+	const handleSuggestionClick = ( suggestion ) => {
+		setInputValue( suggestion.text );
 	};
 
 	const showEmptyState = chatMessages.length === 0;
 
 	return (
 		<div className="chat-section">
-			{ /* Top Toolbar */}
+			{ /* Top Toolbar */ }
 			<div className="chat-toolbar">
 				<div className="toolbar-left">
 					<button className="toolbar-icon-button" title="Edit">
-						<Edit3 size={20} />
+						<Edit3 size={ 20 } />
 					</button>
 					<button className="toolbar-icon-button" title="History">
-						<RotateCcw size={20} />
+						<RotateCcw size={ 20 } />
 					</button>
 					<button
-						className={`toolbar-icon-button ${activeView === 'code' ? 'active' : ''
-							}`}
-						onClick={() =>
-							dispatch({
+						className={ `toolbar-icon-button ${
+							activeView === 'code' ? 'active' : ''
+						}` }
+						onClick={ () =>
+							dispatch( {
 								type: APP_ACTIONS.SET_ACTIVE_VIEW,
 								payload: 'code',
-							})
+							} )
 						}
 						title="Code View"
 					>
-						<Code2 size={20} />
+						<Code2 size={ 20 } />
 					</button>
 					<button
-						className={`toolbar-icon-button ${activeView === 'preview' ? 'active' : ''
-							}`}
-						onClick={() =>
-							dispatch({
+						className={ `toolbar-icon-button ${
+							activeView === 'preview' ? 'active' : ''
+						}` }
+						onClick={ () =>
+							dispatch( {
 								type: APP_ACTIONS.SET_ACTIVE_VIEW,
 								payload: 'preview',
-							})
+							} )
 						}
 						title="Preview"
 					>
-						<Eye size={20} />
+						<Eye size={ 20 } />
 					</button>
 				</div>
 				<div className="toolbar-right">
@@ -221,14 +226,14 @@ const ChatSection = () => {
 						className="toolbar-icon-button"
 						title="Toggle Sidebar"
 					>
-						<Sidebar size={20} />
+						<Sidebar size={ 20 } />
 					</button>
 				</div>
 			</div>
 
-			{ /* Chat Content */}
+			{ /* Chat Content */ }
 			<div className="chat-content">
-				{showEmptyState ? (
+				{ showEmptyState ? (
 					<div className="chat-empty-state">
 						<h1 className="chat-welcome-heading">
 							What would you like to work on today?
@@ -239,49 +244,54 @@ const ChatSection = () => {
 								Here are some things you can try
 							</p>
 							<div className="suggestions-list">
-								{suggestions.map((suggestion, index) => (
+								{ suggestions.map( ( suggestion, index ) => (
 									<button
-										key={index}
-										className={`suggestion-pill ${suggestion.color}`}
-										onClick={() =>
-											handleSuggestionClick(suggestion)
+										key={ index }
+										className={ `suggestion-pill ${ suggestion.color }` }
+										onClick={ () =>
+											handleSuggestionClick( suggestion )
 										}
 									>
-										<CornerDownRight size={18} />
-										<span>{suggestion.text}</span>
+										<CornerDownRight size={ 18 } />
+										<span>{ suggestion.text }</span>
 									</button>
-								))}
+								) ) }
 							</div>
 						</div>
 					</div>
 				) : (
 					<div className="chat-messages">
-						{chatMessages.map((message, index) => (
+						{ chatMessages.map( ( message, index ) => (
 							<ChatMessage
-								key={message.id || `chat-message-${index}`}
-								message={message}
+								key={ message.id || `chat-message-${ index }` }
+								message={ message }
 							/>
-						))}
-						{statusMessage ? (
+						) ) }
+						{ statusMessage ? (
 							<div
 								className="chat-status"
 								role="status"
 								aria-live="polite"
 							>
-								<span className="chat-status-text">{statusMessage}</span>
-								<span className="chat-status-dots" aria-hidden="true">
+								<span className="chat-status-text">
+									{ statusMessage }
+								</span>
+								<span
+									className="chat-status-dots"
+									aria-hidden="true"
+								>
 									<span className="dot" />
 									<span className="dot" />
 									<span className="dot" />
 								</span>
 							</div>
-						) : null}
-						<div ref={messagesEndRef} />
+						) : null }
+						<div ref={ messagesEndRef } />
 					</div>
-				)}
+				) }
 			</div>
 
-			{ /* Bottom Input Area */}
+			{ /* Bottom Input Area */ }
 			<div className="chat-input-area">
 				<div className="working-on-label">
 					<span className="label-text">Working on:</span>
@@ -292,63 +302,63 @@ const ChatSection = () => {
 					<textarea
 						className="chat-input"
 						placeholder="Ask Angie to..."
-						value={inputValue}
-						rows={1}
-						onChange={(e) => {
-							setInputValue(e.target.value);
+						value={ inputValue }
+						rows={ 1 }
+						onChange={ ( e ) => {
+							setInputValue( e.target.value );
 							e.target.style.height = 'auto';
-							e.target.style.height = `${e.target.scrollHeight}px`;
-						}}
-						onKeyDown={handleKeyDown}
+							e.target.style.height = `${ e.target.scrollHeight }px`;
+						} }
+						onKeyDown={ handleKeyDown }
 					/>
 
 					<div className="input-toolbar">
 						<div className="input-toolbar-left">
 							<button
 								className="input-icon-button"
-								onClick={() =>
-									dispatch({
+								onClick={ () =>
+									dispatch( {
 										type: APP_ACTIONS.SET_PROMPT_LIBRARY_OPEN,
 										payload: true,
-									})
+									} )
 								}
 								title="Add Prompt"
 							>
-								<Plus size={20} />
+								<Plus size={ 20 } />
 							</button>
 							<button
 								className="input-icon-button"
 								title="AI Enhance"
 							>
-								<Sparkles size={20} />
+								<Sparkles size={ 20 } />
 							</button>
 							<select
 								className="input-model-select"
-								value={selectedModel}
-								onChange={(e) =>
-									dispatch({
+								value={ selectedModel }
+								onChange={ ( e ) =>
+									dispatch( {
 										type: APP_ACTIONS.SET_SELECTED_MODEL,
 										payload: e.target.value,
-									})
+									} )
 								}
 								title="Select AI model"
 							>
-								<option value=''>Select a model</option>
-								{/* <option value="gemini-3-flash">Gemini 3 Flash</option> */}
+								<option value="">Select a model</option>
+								{ /* <option value="gemini-3-flash">Gemini 3 Flash</option> */ }
 								<option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
 								<option value="gemini-3.1-pro">Gemini 3.1 Pro</option>
 								<option value="claude-opus-4-7">Claude 4.7 Opus</option>
 								<option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option>
 								<option value="gpt-4o">GPT-4o</option>
 								<option value="gpt-5.4">GPT-5.4</option>
-								{/* <option value="deepseek-chat">DeepSeek Chat</option>
-								<option value="deepseek-reasoner">DeepSeek Reasoner</option> */}
+								{ /* <option value="deepseek-chat">DeepSeek Chat</option>
+								<option value="deepseek-reasoner">DeepSeek Reasoner</option> */ }
 							</select>
 						</div>
 
 						<button
 							className="input-send-button"
-							onClick={handleSend}
+							onClick={ handleSend }
 							title="Send Message"
 						>
 							<svg

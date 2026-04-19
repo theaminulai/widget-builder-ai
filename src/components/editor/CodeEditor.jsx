@@ -18,15 +18,15 @@ const CodeEditor = () => {
 	 * @param {string | undefined} value Editor content.
 	 * @return {void}
 	 */
-	const handleEditorChange = (value) => {
-		if (value !== undefined) {
-			dispatch({
+	const handleEditorChange = ( value ) => {
+		if ( value !== undefined ) {
+			dispatch( {
 				type: APP_ACTIONS.UPDATE_FILE,
 				payload: {
 					filename: currentFile,
 					content: value,
 				},
-			});
+			} );
 		}
 	};
 
@@ -36,10 +36,10 @@ const CodeEditor = () => {
 	 * @param {string} filename File name.
 	 * @return {string} Editor language key.
 	 */
-	const getLanguage = (filename) => {
-		if (filename.endsWith('.js')) return 'javascript';
-		if (filename.endsWith('.css')) return 'css';
-		if (filename.endsWith('.php')) return 'php';
+	const getLanguage = ( filename ) => {
+		if ( filename.endsWith( '.js' ) ) return 'javascript';
+		if ( filename.endsWith( '.css' ) ) return 'css';
+		if ( filename.endsWith( '.php' ) ) return 'php';
 		return 'plaintext';
 	};
 
@@ -48,16 +48,16 @@ const CodeEditor = () => {
 			<FileExplorer />
 			<div className="editor-wrapper">
 				<div className="editor-header">
-					<span className="editor-filename">{currentFile}</span>
+					<span className="editor-filename">{ currentFile }</span>
 				</div>
 				<Editor
 					height="100%"
-					defaultLanguage={getLanguage(currentFile)}
-					language={getLanguage(currentFile)}
-					value={files[currentFile] || ''}
-					onChange={handleEditorChange}
+					defaultLanguage={ getLanguage( currentFile ) }
+					language={ getLanguage( currentFile ) }
+					value={ files[ currentFile ] || '' }
+					onChange={ handleEditorChange }
 					theme="vs-dark"
-					options={{
+					options={ {
 						minimap: { enabled: false },
 						fontSize: 14,
 						lineNumbers: 'on',
@@ -65,7 +65,7 @@ const CodeEditor = () => {
 						automaticLayout: true,
 						tabSize: 2,
 						wordWrap: 'on',
-					}}
+					} }
 				/>
 			</div>
 		</div>

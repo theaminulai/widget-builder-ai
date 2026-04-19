@@ -14,7 +14,7 @@ const PreviewPane = () => {
 		<div className="preview-pane">
 			<iframe
 				className="preview-iframe"
-				src={iframeUrl}
+				src={ iframeUrl }
 				title="Elementor Preview"
 				loading="eager"
 			/>

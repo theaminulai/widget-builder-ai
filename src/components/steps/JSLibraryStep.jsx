@@ -11,9 +11,9 @@ import './StepContent.scss';
  */
 const JSLibraryStep = () => {
 	const { widgetConfig, dispatch } = useAppContext();
-	const [editingIndex, setEditingIndex] = React.useState(null);
-	const [editUrl, setEditUrl] = React.useState('');
-	const [editType, setEditType] = React.useState('');
+	const [ editingIndex, setEditingIndex ] = React.useState( null );
+	const [ editUrl, setEditUrl ] = React.useState( '' );
+	const [ editType, setEditType ] = React.useState( '' );
 
 	/**
 	 * Adds a new editable library row.
@@ -21,15 +21,15 @@ const JSLibraryStep = () => {
 	 * @return {void}
 	 */
 	const addLibrary = () => {
-		dispatch({
+		dispatch( {
 			type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 			payload: {
-				libraries: [...widgetConfig.libraries, { url: '', type: '' }],
+				libraries: [ ...widgetConfig.libraries, { url: '', type: '' } ],
 			},
-		});
-		setEditingIndex(widgetConfig.libraries.length);
-		setEditUrl('');
-		setEditType('');
+		} );
+		setEditingIndex( widgetConfig.libraries.length );
+		setEditUrl( '' );
+		setEditType( '' );
 	};
 
 	/**
@@ -38,16 +38,16 @@ const JSLibraryStep = () => {
 	 * @param {number} index Library index.
 	 * @return {void}
 	 */
-	const removeLibrary = (index) => {
+	const removeLibrary = ( index ) => {
 		const newLibraries = widgetConfig.libraries.filter(
-			(_, i) => i !== index
+			( _, i ) => i !== index
 		);
-		dispatch({
+		dispatch( {
 			type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 			payload: { libraries: newLibraries },
-		});
-		if (editingIndex === index) {
-			setEditingIndex(null);
+		} );
+		if ( editingIndex === index ) {
+			setEditingIndex( null );
 		}
 	};
 
@@ -58,10 +58,10 @@ const JSLibraryStep = () => {
 	 * @param {{url: string, type: string}} library Library data.
 	 * @return {void}
 	 */
-	const startEditing = (index, library) => {
-		setEditingIndex(index);
-		setEditUrl(library.url);
-		setEditType(library.type);
+	const startEditing = ( index, library ) => {
+		setEditingIndex( index );
+		setEditUrl( library.url );
+		setEditType( library.type );
 	};
 
 	/**
@@ -70,23 +70,23 @@ const JSLibraryStep = () => {
 	 * @param {number} index Library index.
 	 * @return {void}
 	 */
-	const saveEdit = (index) => {
+	const saveEdit = ( index ) => {
 		// Validate that both URL and type are provided
-		if (!editUrl.trim() || !editType) {
+		if ( ! editUrl.trim() || ! editType ) {
 			return;
 		}
 		// Update both url and type in a single operation to avoid race conditions
-		const newLibraries = [...widgetConfig.libraries];
-		newLibraries[index] = {
-			...newLibraries[index],
+		const newLibraries = [ ...widgetConfig.libraries ];
+		newLibraries[ index ] = {
+			...newLibraries[ index ],
 			url: editUrl,
 			type: editType,
 		};
-		dispatch({
+		dispatch( {
 			type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 			payload: { libraries: newLibraries },
-		});
-		setEditingIndex(null);
+		} );
+		setEditingIndex( null );
 	};
 
 	/**
@@ -95,22 +95,22 @@ const JSLibraryStep = () => {
 	 * @return {void}
 	 */
 	const cancelEdit = () => {
-		setEditingIndex(null);
+		setEditingIndex( null );
 	};
 
 	// Group libraries by type
 	const jsLibraries = widgetConfig.libraries
-		.map((lib, index) => ({ ...lib, originalIndex: index }))
-		.filter((lib) => lib.type === 'js');
+		.map( ( lib, index ) => ( { ...lib, originalIndex: index } ) )
+		.filter( ( lib ) => lib.type === 'js' );
 
 	const cssLibraries = widgetConfig.libraries
-		.map((lib, index) => ({ ...lib, originalIndex: index }))
-		.filter((lib) => lib.type === 'css');
+		.map( ( lib, index ) => ( { ...lib, originalIndex: index } ) )
+		.filter( ( lib ) => lib.type === 'css' );
 
 	// Check if we're adding a new library (no type yet)
 	const newLibrary = widgetConfig.libraries
-		.map((lib, index) => ({ ...lib, originalIndex: index }))
-		.find((lib) => !lib.type && editingIndex === lib.originalIndex);
+		.map( ( lib, index ) => ( { ...lib, originalIndex: index } ) )
+		.find( ( lib ) => ! lib.type && editingIndex === lib.originalIndex );
 
 	// Check if we can save (for the new library section)
 	const canSaveNewLibrary = editUrl.trim() && editType;
@@ -122,42 +122,42 @@ const JSLibraryStep = () => {
 	 * @param {number} index Display index within grouped libraries.
 	 * @return {JSX.Element} Library item element.
 	 */
-	const renderLibraryItem = (library, index) => {
+	const renderLibraryItem = ( library, index ) => {
 		const originalIndex = library.originalIndex;
 		const isEditing = editingIndex === originalIndex;
 		const canSave = editUrl.trim() && editType;
 
 		return (
-			<div key={originalIndex} className="library-tree-item">
+			<div key={ originalIndex } className="library-tree-item">
 				<div className="library-tree-content">
 					<div className="library-item-header">
 						<div className="library-name">
 							<span className="library-label">
-								{library.type === 'js' ? 'JS' : 'CSS'} Library{' '}
-								{index + 1}
+								{ library.type === 'js' ? 'JS' : 'CSS' } Library{ ' ' }
+								{ index + 1 }
 							</span>
 						</div>
 						<div className="library-actions">
-							{isEditing ? (
+							{ isEditing ? (
 								<>
 									<button
 										type="button"
 										className="save-library-btn"
-										onClick={() =>
-											saveEdit(originalIndex)
+										onClick={ () =>
+											saveEdit( originalIndex )
 										}
-										disabled={!canSave}
+										disabled={ ! canSave }
 										aria-label="Save library"
 									>
-										<Check size={20} />
+										<Check size={ 20 } />
 									</button>
 									<button
 										type="button"
 										className="cancel-edit-btn"
-										onClick={cancelEdit}
+										onClick={ cancelEdit }
 										aria-label="Cancel edit"
 									>
-										<X size={20} />
+										<X size={ 20 } />
 									</button>
 								</>
 							) : (
@@ -165,7 +165,7 @@ const JSLibraryStep = () => {
 									<button
 										type="button"
 										className="edit-library-btn"
-										onClick={() =>
+										onClick={ () =>
 											startEditing(
 												originalIndex,
 												library
@@ -173,40 +173,40 @@ const JSLibraryStep = () => {
 										}
 										aria-label="Edit library"
 									>
-										<Edit2 size={20} />
+										<Edit2 size={ 20 } />
 									</button>
 									<button
 										type="button"
 										className="remove-library-btn"
-										onClick={() =>
-											removeLibrary(originalIndex)
+										onClick={ () =>
+											removeLibrary( originalIndex )
 										}
 										aria-label="Remove library"
 									>
-										<Trash2 size={24} />
+										<Trash2 size={ 24 } />
 									</button>
 								</>
-							)}
+							) }
 						</div>
 					</div>
 
-					{isEditing ? (
+					{ isEditing ? (
 						<div className="library-url-group">
 							<input
 								type="text"
 								className="library-url-input"
-								value={editUrl}
-								onChange={(e) =>
-									setEditUrl(e.target.value)
+								value={ editUrl }
+								onChange={ ( e ) =>
+									setEditUrl( e.target.value )
 								}
 								placeholder="Enter the CDN or hosted URL."
 							/>
 							<div className="library-type-dropdown">
 								<select
 									className="type-select"
-									value={editType}
-									onChange={(e) =>
-										setEditType(e.target.value)
+									value={ editType }
+									onChange={ ( e ) =>
+										setEditType( e.target.value )
 									}
 								>
 									<option value="" disabled>
@@ -220,10 +220,10 @@ const JSLibraryStep = () => {
 					) : (
 						<div className="library-preview">
 							<code className="library-code">
-								{library.url}
+								{ library.url }
 							</code>
 						</div>
-					)}
+					) }
 				</div>
 			</div>
 		);
@@ -240,46 +240,46 @@ const JSLibraryStep = () => {
 			</div>
 
 			<div className="libraries-container">
-				{widgetConfig.libraries.length > 0 ? (
+				{ widgetConfig.libraries.length > 0 ? (
 					<div className="libraries-tree">
-						{jsLibraries.length > 0 && (
+						{ jsLibraries.length > 0 && (
 							<div className="library-group">
 								<div className="library-group-header">
-									<FileCode size={24} />
+									<FileCode size={ 24 } />
 									<span>
 										JavaScript Libraries (
-										{jsLibraries.length})
+										{ jsLibraries.length })
 									</span>
 								</div>
 								<div className="library-group-items">
-									{jsLibraries.map((library, index) =>
-										renderLibraryItem(library, index)
-									)}
+									{ jsLibraries.map( ( library, index ) =>
+										renderLibraryItem( library, index )
+									) }
 								</div>
 							</div>
-						)}
+						) }
 
-						{cssLibraries.length > 0 && (
+						{ cssLibraries.length > 0 && (
 							<div className="library-group">
 								<div className="library-group-header">
-									<Palette size={24} />
+									<Palette size={ 24 } />
 									<span>
-										CSS Libraries ({cssLibraries.length})
+										CSS Libraries ({ cssLibraries.length })
 									</span>
 								</div>
 								<div className="library-group-items">
-									{cssLibraries.map((library, index) =>
-										renderLibraryItem(library, index)
-									)}
+									{ cssLibraries.map( ( library, index ) =>
+										renderLibraryItem( library, index )
+									) }
 								</div>
 							</div>
-						)}
+						) }
 
-						{ /* Show new library being added */}
-						{newLibrary && (
+						{ /* Show new library being added */ }
+						{ newLibrary && (
 							<div className="library-group">
 								<div className="library-group-header">
-									<Plus size={24} />
+									<Plus size={ 24 } />
 									<span>New Library</span>
 								</div>
 								<div className="library-group-items">
@@ -295,30 +295,30 @@ const JSLibraryStep = () => {
 													<button
 														type="button"
 														className="save-library-btn"
-														onClick={() =>
+														onClick={ () =>
 															saveEdit(
 																newLibrary.originalIndex
 															)
 														}
 														disabled={
-															!canSaveNewLibrary
+															! canSaveNewLibrary
 														}
 														aria-label="Save library"
 													>
-														<Check size={20} />
+														<Check size={ 20 } />
 													</button>
 													<button
 														type="button"
 														className="cancel-edit-btn"
-														onClick={() => {
+														onClick={ () => {
 															removeLibrary(
 																newLibrary.originalIndex
 															);
 															cancelEdit();
-														}}
+														} }
 														aria-label="Cancel"
 													>
-														<X size={20} />
+														<X size={ 20 } />
 													</button>
 												</div>
 											</div>
@@ -327,8 +327,8 @@ const JSLibraryStep = () => {
 												<input
 													type="text"
 													className="library-url-input"
-													value={editUrl}
-													onChange={(e) =>
+													value={ editUrl }
+													onChange={ ( e ) =>
 														setEditUrl(
 															e.target.value
 														)
@@ -339,25 +339,16 @@ const JSLibraryStep = () => {
 												<div className="library-type-dropdown">
 													<select
 														className="type-select"
-														value={editType}
-														onChange={(e) =>
+														value={ editType }
+														onChange={ ( e ) =>
 															setEditType(
 																e.target.value
 															)
 														}
 													>
-														<option
-															value=""
-															disabled
-														>
-															Select Library Type
-														</option>
-														<option value="js">
-															JS Library
-														</option>
-														<option value="css">
-															CSS Library
-														</option>
+														<option value="" disabled > Select Library Type </option>
+														<option value="js"> JS Library </option>
+														<option value="css"> CSS Library</option>
 													</select>
 												</div>
 											</div>
@@ -365,26 +356,26 @@ const JSLibraryStep = () => {
 									</div>
 								</div>
 							</div>
-						)}
+						) }
 					</div>
 				) : (
 					<div className="empty-state">
 						<div className="empty-icon">
-							<FileCode size={48} />
+							<FileCode size={ 48 } />
 						</div>
 						<p className="empty-text">No libraries added yet</p>
 						<p className="empty-subtext">
 							Click the button below to add your first library
 						</p>
 					</div>
-				)}
+				) }
 
 				<button
 					type="button"
 					className="add-library-btn"
-					onClick={addLibrary}
+					onClick={ addLibrary }
 				>
-					<Plus size={24} />
+					<Plus size={ 24 } />
 					<span>Add Library</span>
 				</button>
 			</div>

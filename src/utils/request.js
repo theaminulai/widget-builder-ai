@@ -8,7 +8,7 @@
  * @return {string} API base URL.
  */
 const getBase = () => {
-	if (window.widgetBuilderAI?.restUrl) {
+	if ( window.widgetBuilderAI?.restUrl ) {
 		return window.widgetBuilderAI.restUrl;
 	}
 	return '/wp-json/widget-builder-ai/v1/';
@@ -19,10 +19,10 @@ const getBase = () => {
  *
  * @return {Object<string, string>} Request header map.
  */
-const getHeaders = () => ({
+const getHeaders = () => ( {
 	'Content-Type': 'application/json',
 	'X-WP-Nonce': window.widgetBuilderAI?.nonce || '',
-});
+} );
 
 /**
  * Sends a request to the plugin REST API and normalizes errors.
@@ -31,18 +31,18 @@ const getHeaders = () => ({
  * @param {Object} [options={}] Fetch options.
  * @return {Promise<Object>} Parsed response payload.
  */
-export const request = async (path, options = {}) => {
-	const response = await fetch(`${getBase()}${path}`, {
+export const request = async ( path, options = {} ) => {
+	const response = await fetch( `${ getBase() }${ path }`, {
 		...options,
 		headers: {
 			...getHeaders(),
-			...(options.headers || {}),
+			...( options.headers || {} ),
 		},
-	});
+	} );
 
 	const data = await response.json();
-	if (!response.ok || data?.success === false) {
-		throw new Error(data?.error || 'Request failed');
+	if ( ! response.ok || data?.success === false ) {
+		throw new Error( data?.error || 'Request failed' );
 	}
 
 	return data;

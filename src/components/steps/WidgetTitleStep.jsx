@@ -25,12 +25,12 @@ const WidgetTitleStep = () => {
 					id="widget-name"
 					type="text"
 					placeholder="Enter widget name..."
-					value={widgetConfig.title}
-					onChange={(e) =>
-						dispatch({
+					value={ widgetConfig.title }
+					onChange={ ( e ) =>
+						dispatch( {
 							type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 							payload: { title: e.target.value },
-						})
+						} )
 					}
 				/>
 			</div>
@@ -40,12 +40,12 @@ const WidgetTitleStep = () => {
 				<textarea
 					id="widget-description"
 					placeholder="Describe what your widget does..."
-					value={widgetConfig.description}
-					onChange={(e) =>
-						dispatch({
+					value={ widgetConfig.description }
+					onChange={ ( e ) =>
+						dispatch( {
 							type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 							payload: { description: e.target.value },
-						})
+						} )
 					}
 				/>
 			</div>

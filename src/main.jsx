@@ -8,25 +8,25 @@ import App from './App.jsx';
 import { AppProvider } from './store/AppContext';
 
 const initAdminApp = () => {
-	const mountNode = document.querySelector('.wrap');
+	const mountNode = document.querySelector( '.wrap' );
 	const isDevelopment = window?.widgetBuilderAI?.isDevelopment;
-	const AppWrapper = Boolean(isDevelopment) ? StrictMode : Fragment;
+	const AppWrapper = Boolean( isDevelopment ) ? StrictMode : Fragment;
 
-	if (!mountNode) {
-		console.error('Mount node not found. Expected .wrap in the DOM.');
+	if ( ! mountNode ) {
+		console.error( 'Mount node not found. Expected .wrap in the DOM.' );
 		return;
 	}
 
-	let appRoot = document.getElementById('widget-builder-ai-root');
+	let appRoot = document.getElementById( 'widget-builder-ai-root' );
 
-	if (!appRoot) {
-		appRoot = document.createElement('div');
+	if ( ! appRoot ) {
+		appRoot = document.createElement( 'div' );
 		appRoot.id = 'widget-builder-ai-root';
 		appRoot.className = 'app-container';
-		mountNode.appendChild(appRoot);
+		mountNode.appendChild( appRoot );
 	}
 
-	const root = createRoot(appRoot);
+	const root = createRoot( appRoot );
 
 	root.render(
 		<AppWrapper>
@@ -37,6 +37,6 @@ const initAdminApp = () => {
 	);
 };
 
-domReady(() => {
+domReady( () => {
 	initAdminApp();
-});
+} );

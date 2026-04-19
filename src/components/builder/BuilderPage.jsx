@@ -15,20 +15,20 @@ const BuilderPage = () => {
 
 	return (
 		<AnimatePresence>
-			{isBuilderPageOpen && (
+			{ isBuilderPageOpen && (
 				<motion.div
 					className="builder-page"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
+					initial={ { opacity: 0 } }
+					animate={ { opacity: 1 } }
+					exit={ { opacity: 0 } }
 				>
 					<PopupTwo />
 					<div className="builder-content">
 						<ChatSection />
-						<CodePreviewSection activeView={activeView} />
+						<CodePreviewSection activeView={ activeView } />
 					</div>
 				</motion.div>
-			)}
+			) }
 		</AnimatePresence>
 	);
 };

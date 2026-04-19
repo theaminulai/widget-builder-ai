@@ -21,7 +21,7 @@ const StepContent = () => {
 	 * @return {JSX.Element} Step component.
 	 */
 	const renderStep = () => {
-		switch (setupStep) {
+		switch ( setupStep ) {
 			case SETUP_STEPS.WIDGET_TITLE:
 				return <WidgetTitleStep />;
 			case SETUP_STEPS.WIDGET_ICON:
@@ -39,17 +39,17 @@ const StepContent = () => {
 		<div className="step-content">
 			<AnimatePresence mode="wait">
 				<motion.div
-					key={setupStep}
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					transition={{
+					key={ setupStep }
+					initial={ { opacity: 0 } }
+					animate={ { opacity: 1 } }
+					exit={ { opacity: 0 } }
+					transition={ {
 						duration: 0.15,
 						ease: 'easeInOut',
-					}}
+					} }
 					className="step-content-inner"
 				>
-					{renderStep()}
+					{ renderStep() }
 				</motion.div>
 			</AnimatePresence>
 		</div>

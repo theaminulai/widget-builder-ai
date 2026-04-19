@@ -22,12 +22,11 @@ const WidgetSetupPopup = () => {
 		files,
 		currentWidgetId,
 		selectedModel,
-	} =
-		useAppContext();
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	} = useAppContext();
+	const [ isSubmitting, setIsSubmitting ] = useState( false );
 
-	useEffect(() => {
-		if (isWidgetSetupPopupOpen) {
+	useEffect( () => {
+		if ( isWidgetSetupPopupOpen ) {
 			document.body.style.overflow = 'hidden';
 		} else {
 			document.body.style.overflow = 'unset';
@@ -35,26 +34,26 @@ const WidgetSetupPopup = () => {
 		return () => {
 			document.body.style.overflow = 'unset';
 		};
-	}, [isWidgetSetupPopupOpen]);
+	}, [ isWidgetSetupPopupOpen ] );
 
-	useEffect(() => {
+	useEffect( () => {
 		/**
 		 * Closes the setup popup when Escape is pressed.
 		 *
 		 * @param {KeyboardEvent} e Keyboard event.
 		 * @return {void}
 		 */
-		const handleEscape = (e) => {
-			if (e.key === 'Escape' && isWidgetSetupPopupOpen) {
-				dispatch({
+		const handleEscape = ( e ) => {
+			if ( e.key === 'Escape' && isWidgetSetupPopupOpen ) {
+				dispatch( {
 					type: APP_ACTIONS.SET_WIDGET_SETUP_POPUP_OPEN,
 					payload: false,
-				});
+				} );
 			}
 		};
-		window.addEventListener('keydown', handleEscape);
-		return () => window.removeEventListener('keydown', handleEscape);
-	}, [isWidgetSetupPopupOpen]);
+		window.addEventListener( 'keydown', handleEscape );
+		return () => window.removeEventListener( 'keydown', handleEscape );
+	}, [ isWidgetSetupPopupOpen ] );
 
 	/**
 	 * Advances to the next setup step.
@@ -62,11 +61,11 @@ const WidgetSetupPopup = () => {
 	 * @return {void}
 	 */
 	const handleNext = () => {
-		if (setupStep < 4) {
-			dispatch({
+		if ( setupStep < 4 ) {
+			dispatch( {
 				type: APP_ACTIONS.SET_SETUP_STEP,
 				payload: setupStep + 1,
-			});
+			} );
 		}
 	};
 
@@ -76,44 +75,50 @@ const WidgetSetupPopup = () => {
 	 * @return {Promise<void>} Promise that resolves after save flow finishes.
 	 */
 	const handleContinue = async () => {
-		if (isSubmitting) {
+		if ( isSubmitting ) {
 			return;
 		}
 
-		setIsSubmitting(true);;
-		dispatch({ type: APP_ACTIONS.SET_AI_ERROR, payload: '' });
+		setIsSubmitting( true );
+		dispatch( { type: APP_ACTIONS.SET_AI_ERROR, payload: '' } );
 
 		try {
-			const response = await widgetApi.save(currentWidgetId, {
+			const response = await widgetApi.save( currentWidgetId, {
 				widget_id: currentWidgetId || 0,
 				widget_title: widgetConfig.title || 'Untitled Widget',
 				files,
 				model: selectedModel || 'manual-save',
 				summary: 'Initial save from setup wizard',
-			});
+			} );
 
-			dispatch({
+			dispatch( {
 				type: APP_ACTIONS.SET_WIDGET_ID,
 				payload: response.widget_id,
-			});
-			dispatch({
+			} );
+			dispatch( {
 				type: APP_ACTIONS.SET_PREVIEW_URL,
 				payload: response.preview_url || '',
-			});
-			dispatch({
+			} );
+			dispatch( {
 				type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 				payload: { title: response.title || widgetConfig.title },
-			});
+			} );
 
-			dispatch({ type: APP_ACTIONS.SET_WIDGET_SETUP_POPUP_OPEN, payload: false });
-			dispatch({ type: APP_ACTIONS.SET_BUILDER_PAGE_OPEN, payload: true });
-		} catch (error) {
-			dispatch({
+			dispatch( {
+				type: APP_ACTIONS.SET_WIDGET_SETUP_POPUP_OPEN,
+				payload: false,
+			} );
+			dispatch( {
+				type: APP_ACTIONS.SET_BUILDER_PAGE_OPEN,
+				payload: true,
+			} );
+		} catch ( error ) {
+			dispatch( {
 				type: APP_ACTIONS.SET_AI_ERROR,
 				payload: error.message || 'Failed to save widget.',
-			});
+			} );
 		} finally {
-			setIsSubmitting(false);
+			setIsSubmitting( false );
 		}
 	};
 
@@ -123,13 +128,13 @@ const WidgetSetupPopup = () => {
 	 * @return {boolean} True when step requirements are satisfied.
 	 */
 	const isFormValid = () => {
-		if (setupStep === SETUP_STEPS.WIDGET_TITLE) {
+		if ( setupStep === SETUP_STEPS.WIDGET_TITLE ) {
 			return widgetConfig.title.trim() !== '';
 		}
-		if (setupStep === SETUP_STEPS.WIDGET_ICON) {
+		if ( setupStep === SETUP_STEPS.WIDGET_ICON ) {
 			return widgetConfig.icon !== null;
 		}
-		if (setupStep === SETUP_STEPS.WIDGET_CATEGORY) {
+		if ( setupStep === SETUP_STEPS.WIDGET_CATEGORY ) {
 			return widgetConfig.category !== '';
 		}
 		return true;
@@ -141,7 +146,7 @@ const WidgetSetupPopup = () => {
 	 * @return {string} Button label.
 	 */
 	const getButtonLabel = () => {
-		if (setupStep === SETUP_STEPS.JS_LIBRARY) {
+		if ( setupStep === SETUP_STEPS.JS_LIBRARY ) {
 			return 'Continue';
 		}
 		return 'NEXT';
@@ -153,7 +158,7 @@ const WidgetSetupPopup = () => {
 	 * @return {void}
 	 */
 	const handleButtonClick = () => {
-		if (setupStep === SETUP_STEPS.JS_LIBRARY) {
+		if ( setupStep === SETUP_STEPS.JS_LIBRARY ) {
 			handleContinue();
 		} else {
 			handleNext();
@@ -162,53 +167,53 @@ const WidgetSetupPopup = () => {
 
 	return (
 		<AnimatePresence>
-			{isWidgetSetupPopupOpen && (
+			{ isWidgetSetupPopupOpen && (
 				<>
 					<motion.div
 						className="popup-overlay"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						onClick={() =>
-							dispatch({
+						initial={ { opacity: 0 } }
+						animate={ { opacity: 1 } }
+						exit={ { opacity: 0 } }
+						onClick={ () =>
+							dispatch( {
 								type: APP_ACTIONS.SET_WIDGET_SETUP_POPUP_OPEN,
 								payload: false,
-							})
+							} )
 						}
 					/>
 					<motion.div
 						className="popup-one"
-						initial={{
+						initial={ {
 							opacity: 0,
 							scale: 0.95,
 							x: '-50%',
 							y: '-50%',
-						}}
-						animate={{
+						} }
+						animate={ {
 							opacity: 1,
 							scale: 1,
 							x: '-50%',
 							y: '-50%',
-						}}
-						exit={{
+						} }
+						exit={ {
 							opacity: 0,
 							scale: 0.95,
 							x: '-50%',
 							y: '-50%',
-						}}
-						transition={{ duration: 0.2 }}
+						} }
+						transition={ { duration: 0.2 } }
 					>
 						<button
 							className="popup-close"
-							onClick={() =>
-								dispatch({
+							onClick={ () =>
+								dispatch( {
 									type: APP_ACTIONS.SET_WIDGET_SETUP_POPUP_OPEN,
 									payload: false,
-								})
+								} )
 							}
 							aria-label="Close"
 						>
-							<X size={20} />
+							<X size={ 20 } />
 						</button>
 
 						<div className="popup-one-content">
@@ -216,26 +221,28 @@ const WidgetSetupPopup = () => {
 							<div className="popup-one-main">
 								<StepContent />
 
-								{ /* Bottom Footer */}
+								{ /* Bottom Footer */ }
 								<div className="popup-one-footer">
 									<div className="step-progress">
-										Step {setupStep} of 4
+										Step { setupStep } of 4
 									</div>
 									<button
 										className="action-button"
-										onClick={handleButtonClick}
-										disabled={!isFormValid() || isSubmitting}
+										onClick={ handleButtonClick }
+										disabled={
+											! isFormValid() || isSubmitting
+										}
 									>
-										{isSubmitting && setupStep === 4
+										{ isSubmitting && setupStep === 4
 											? 'Saving...'
-											: getButtonLabel()}
+											: getButtonLabel() }
 									</button>
 								</div>
 							</div>
 						</div>
 					</motion.div>
 				</>
-			)}
+			) }
 		</AnimatePresence>
 	);
 };

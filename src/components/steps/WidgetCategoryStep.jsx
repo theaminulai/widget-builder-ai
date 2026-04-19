@@ -25,23 +25,26 @@ const categories = [
 	{
 		id: 'theme-elements',
 		name: 'Theme Elements',
-		description: 'Widgets that enhance the theme\'s appearance and functionality',
+		description:
+			"Widgets that enhance the theme's appearance and functionality",
 	},
 	{
 		id: 'woocommerce-elements',
 		name: 'Woo Elements',
-		description: 'Widgets specifically designed for WooCommerce integration',
+		description:
+			'Widgets specifically designed for WooCommerce integration',
 	},
 	{
 		id: 'site',
 		name: 'Site Elements',
-		description: 'Widgets that enhance overall site functionality and user experience',
+		description:
+			'Widgets that enhance overall site functionality and user experience',
 	},
 	{
 		id: 'single',
 		name: 'Single',
 		description: 'Widgets designed for single use on a page.',
-	}
+	},
 ];
 
 /**
@@ -60,24 +63,25 @@ const WidgetCategoryStep = () => {
 			</div>
 
 			<div className="category-grid">
-				{categories.map((category) => (
+				{ categories.map( ( category ) => (
 					<button
-						key={category.id}
-						className={`category-card ${widgetConfig.category === category.id
-							? 'selected'
-							: ''
-							}`}
-						onClick={() =>
-							dispatch({
+						key={ category.id }
+						className={ `category-card ${
+							widgetConfig.category === category.id
+								? 'selected'
+								: ''
+						}` }
+						onClick={ () =>
+							dispatch( {
 								type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 								payload: { category: category.id },
-							})
+							} )
 						}
 					>
-						<h4>{category.name}</h4>
-						<p>{category.description}</p>
+						<h4>{ category.name }</h4>
+						<p>{ category.description }</p>
 					</button>
-				))}
+				) ) }
 			</div>
 		</div>
 	);

@@ -8,10 +8,10 @@ import { getWidgetIdFromUrl } from '../utils/url.js';
  * @param {{dispatch: Function}} params Hook params.
  * @return {void}
  */
-export default function useEditWidgetButtonHandler({ dispatch }) {
-	useEffect(() => {
-		const wrapNode = document.querySelector('.wrap');
-		if (!wrapNode) {
+export default function useEditWidgetButtonHandler( { dispatch } ) {
+	useEffect( () => {
+		const wrapNode = document.querySelector( '.wrap' );
+		if ( ! wrapNode ) {
 			return;
 		}
 
@@ -21,24 +21,30 @@ export default function useEditWidgetButtonHandler({ dispatch }) {
 		 * @param {MouseEvent} event Click event.
 		 * @return {void}
 		 */
-		const handleClick = (event) => {
-			const editLink = event.target.closest('.row-actions .edit a');
-			if (!editLink) {
+		const handleClick = ( event ) => {
+			const editLink = event.target.closest( '.row-actions .edit a' );
+			if ( ! editLink ) {
 				return;
 			}
 
-			const widgetId = getWidgetIdFromUrl(editLink.href);
-			if (!widgetId) {
+			const widgetId = getWidgetIdFromUrl( editLink.href );
+			if ( ! widgetId ) {
 				return;
 			}
 
 			event.preventDefault();
-			dispatch({ type: APP_ACTIONS.SET_WIDGET_SETUP_POPUP_OPEN, payload: false });
-			dispatch({ type: APP_ACTIONS.SET_WIDGET_ID, payload: widgetId });
-			dispatch({ type: APP_ACTIONS.SET_BUILDER_PAGE_OPEN, payload: true });
+			dispatch( {
+				type: APP_ACTIONS.SET_WIDGET_SETUP_POPUP_OPEN,
+				payload: false,
+			} );
+			dispatch( { type: APP_ACTIONS.SET_WIDGET_ID, payload: widgetId } );
+			dispatch( {
+				type: APP_ACTIONS.SET_BUILDER_PAGE_OPEN,
+				payload: true,
+			} );
 		};
 
-		wrapNode.addEventListener('click', handleClick);
-		return () => wrapNode.removeEventListener('click', handleClick);
-	}, [dispatch]);
+		wrapNode.addEventListener( 'click', handleClick );
+		return () => wrapNode.removeEventListener( 'click', handleClick );
+	}, [ dispatch ] );
 }

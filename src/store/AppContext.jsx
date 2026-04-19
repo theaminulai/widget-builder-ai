@@ -1,7 +1,11 @@
 import { createContext, useContext, useReducer } from 'react';
-import { appReducer, initialState, SETUP_STEPS } from '../reducers/appReducer.js';
+import {
+	appReducer,
+	initialState,
+	SETUP_STEPS,
+} from '../reducers/appReducer.js';
 
-const AppContext = createContext(null);
+const AppContext = createContext( null );
 
 /**
  * Returns the widget builder app context.
@@ -9,9 +13,9 @@ const AppContext = createContext(null);
  * @return {Object} App context value.
  */
 export const useAppContext = () => {
-	const context = useContext(AppContext);
-	if (!context) {
-		throw new Error('useAppContext must be used within AppProvider');
+	const context = useContext( AppContext );
+	if ( ! context ) {
+		throw new Error( 'useAppContext must be used within AppProvider' );
 	}
 	return context;
 };
@@ -22,8 +26,8 @@ export const useAppContext = () => {
  * @param {{children: React.ReactNode}} props Component props.
  * @return {JSX.Element} Context provider wrapper.
  */
-export const AppProvider = ({ children }) => {
-	const [state, dispatch] = useReducer(appReducer, initialState);
+export const AppProvider = ( { children } ) => {
+	const [ state, dispatch ] = useReducer( appReducer, initialState );
 
 	/**
 	 * Determines whether a setup step currently satisfies completion rules.
@@ -31,8 +35,8 @@ export const AppProvider = ({ children }) => {
 	 * @param {number} step Step identifier.
 	 * @return {boolean} True when the step is complete.
 	 */
-	const isStepComplete = (step) => {
-		switch (step) {
+	const isStepComplete = ( step ) => {
+		switch ( step ) {
 			case SETUP_STEPS.WIDGET_TITLE:
 				return state.widgetConfig.title.trim() !== '';
 			case SETUP_STEPS.WIDGET_ICON:
@@ -53,7 +57,7 @@ export const AppProvider = ({ children }) => {
 	};
 
 	return (
-		<AppContext.Provider value={value}>{children}</AppContext.Provider>
+		<AppContext.Provider value={ value }>{ children }</AppContext.Provider>
 	);
 };
 

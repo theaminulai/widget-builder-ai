@@ -11,12 +11,12 @@ import { widgetIcons } from '../../utils/iconUtils';
  */
 const WidgetIconStep = () => {
 	const { widgetConfig, dispatch } = useAppContext();
-	const [searchQuery, setSearchQuery] = useState('');
+	const [ searchQuery, setSearchQuery ] = useState( '' );
 	const normalizedSearch = searchQuery.trim().toLowerCase();
 	const selectedIcon = widgetConfig.icon || '';
 
-	const filteredIcons = widgetIcons.filter(({ searchText }) =>
-		searchText.includes(normalizedSearch)
+	const filteredIcons = widgetIcons.filter( ( { searchText } ) =>
+		searchText.includes( normalizedSearch )
 	);
 
 	return (
@@ -28,64 +28,68 @@ const WidgetIconStep = () => {
 
 			<div className="icon-search-container">
 				<div className="icon-search-wrapper">
-					<Search size={20} className="search-icon" />
+					<Search size={ 20 } className="search-icon" />
 					<input
 						type="text"
 						className="icon-search-input"
 						placeholder="Search icons..."
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
+						value={ searchQuery }
+						onChange={ ( e ) => setSearchQuery( e.target.value ) }
 					/>
-					{searchQuery && (
+					{ searchQuery && (
 						<button
 							className="clear-search-btn"
-							onClick={() => setSearchQuery('')}
+							onClick={ () => setSearchQuery( '' ) }
 							aria-label="Clear search"
 						>
-							<X size={16} />
+							<X size={ 16 } />
 						</button>
-					)}
+					) }
 				</div>
 				<p className="search-results-count">
-					{filteredIcons.length} icon
-					{filteredIcons.length !== 1 ? 's' : ''} found
+					{ filteredIcons.length } icon
+					{ filteredIcons.length !== 1 ? 's' : '' } found
 				</p>
 			</div>
 
 			<div className="icon-grid">
-				{filteredIcons.map(({ id, label, path, width, height }) => (
+				{ filteredIcons.map( ( { id, label, path, width, height } ) => (
 					<button
-						key={id}
-						className={`icon-item ${selectedIcon === id || selectedIcon === id.replace('eicon-', '') ? 'selected' : ''
-							}`}
-						onClick={() =>
-							dispatch({
+						key={ id }
+						className={ `icon-item ${
+							selectedIcon === id ||
+							selectedIcon === id.replace( 'eicon-', '' )
+								? 'selected'
+								: ''
+						}` }
+						onClick={ () =>
+							dispatch( {
 								type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 								payload: { icon: id },
-							})
+							} )
 						}
-						title={id}
-						aria-label={id}
+						title={ id }
+						aria-label={ id }
 					>
 						<svg
 							width="32"
 							height="32"
-							viewBox={`0 0 ${width} ${height}`}
+							viewBox={ `0 0 ${ width } ${ height }` }
 							aria-hidden="true"
 							fill="currentColor"
 						>
-							<path d={path} />
+							<path d={ path } />
 						</svg>
-						<span className="screen-reader-text">{label}</span>
+						<span className="screen-reader-text">{ label }</span>
 					</button>
-				))}
+				) ) }
 			</div>
 
-			{filteredIcons.length === 0 && (
+			{ filteredIcons.length === 0 && (
 				<div className="no-icons-found">
-					<p>No icons found matching "{searchQuery}"</p>
+					<p>No icons found matching "{ searchQuery }"</p>
 				</div>
-			)}
+			) }
 		</div>
 	);
 };

@@ -10,11 +10,11 @@ export const widgetApi = {
 	 * @param {Object} payload Generation payload.
 	 * @return {Promise<Object>} Generation response.
 	 */
-	generate: (payload) =>
-		request('generate', {
+	generate: ( payload ) =>
+		request( 'generate', {
 			method: 'POST',
-			body: JSON.stringify(payload),
-		}),
+			body: JSON.stringify( payload ),
+		} ),
 	/**
 	 * Saves widget files and creates a version.
 	 *
@@ -22,18 +22,19 @@ export const widgetApi = {
 	 * @param {Object} payload Save payload.
 	 * @return {Promise<Object>} Save response.
 	 */
-	save: (widgetId, payload) =>
-		request(widgetId ? `save/${widgetId}` : 'save', {
+	save: ( widgetId, payload ) =>
+		request( widgetId ? `save/${ widgetId }` : 'save', {
 			method: 'POST',
-			body: JSON.stringify(payload),
-		}),
+			body: JSON.stringify( payload ),
+		} ),
 	/**
 	 * Loads complete widget payload by ID.
 	 *
 	 * @param {number} widgetId Widget ID.
 	 * @return {Promise<Object>} Widget payload.
 	 */
-	loadWidget: (widgetId) => request(`widget/${widgetId}`, { method: 'GET' }),
+	loadWidget: ( widgetId ) =>
+		request( `widget/${ widgetId }`, { method: 'GET' } ),
 	/**
 	 * Rolls back a widget to a previous version.
 	 *
@@ -41,9 +42,9 @@ export const widgetApi = {
 	 * @param {number} version Version number.
 	 * @return {Promise<Object>} Rollback response.
 	 */
-	rollback: (widgetId, version) =>
-		request(`widget/${widgetId}/rollback`, {
+	rollback: ( widgetId, version ) =>
+		request( `widget/${ widgetId }/rollback`, {
 			method: 'POST',
-			body: JSON.stringify({ version }),
-		}),
+			body: JSON.stringify( { version } ),
+		} ),
 };

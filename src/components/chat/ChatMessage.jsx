@@ -9,30 +9,28 @@ import './ChatMessage.scss';
  * @param {{message: Object}} props Component props.
  * @return {JSX.Element} Chat message element.
  */
-const ChatMessage = ({ message }) => {
+const ChatMessage = ( { message } ) => {
 	const isUser = message.role === 'user';
-	const messageTime = formatTimestamp(message.timestamp);
+	const messageTime = formatTimestamp( message.timestamp );
 
 	return (
 		<motion.div
-			className={`chat-message ${isUser ? 'user' : 'assistant'}`}
-			initial={{ opacity: 0, y: 10 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3 }}
+			className={ `chat-message ${ isUser ? 'user' : 'assistant' }` }
+			initial={ { opacity: 0, y: 10 } }
+			animate={ { opacity: 1, y: 0 } }
+			transition={ { duration: 0.3 } }
 		>
 			<div className="message-avatar">
-				{isUser ? <User size={20} /> : <Bot size={20} />}
+				{ isUser ? <User size={ 20 } /> : <Bot size={ 20 } /> }
 			</div>
 			<div className="message-content">
 				<div className="message-header">
 					<span className="message-role">
-						{isUser ? 'You' : 'AI Assistant'}
+						{ isUser ? 'You' : 'AI Assistant' }
 					</span>
-					<span className="message-time">
-						{messageTime}
-					</span>
+					<span className="message-time">{ messageTime }</span>
 				</div>
-				<div className="message-text">{message.content}</div>
+				<div className="message-text">{ message.content }</div>
 			</div>
 		</motion.div>
 	);

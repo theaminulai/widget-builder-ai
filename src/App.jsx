@@ -17,42 +17,42 @@ import { Fragment } from 'react';
 export default function App() {
 	const { dispatch, isBuilderPageOpen, currentWidgetId } = useAppContext();
 
-	useAddNewButtonHandler({ dispatch });
-	useEditWidgetButtonHandler({ dispatch });
-	useBuilderPageLayout(isBuilderPageOpen);
-	
-	useEffect(() => {
-		const widgetId = Number(currentWidgetId) || 0;
-		if (widgetId <= 0) {
+	useAddNewButtonHandler( { dispatch } );
+	useEditWidgetButtonHandler( { dispatch } );
+	useBuilderPageLayout( isBuilderPageOpen );
+
+	useEffect( () => {
+		const widgetId = Number( currentWidgetId ) || 0;
+		if ( widgetId <= 0 ) {
 			return;
 		}
 
 		let mounted = true;
 
 		widgetApi
-			.loadWidget(widgetId)
-			.then((payload) => {
-				if (!mounted) {
+			.loadWidget( widgetId )
+			.then( ( payload ) => {
+				if ( ! mounted ) {
 					return;
 				}
 
-				dispatch({
+				dispatch( {
 					type: APP_ACTIONS.HYDRATE_WIDGET_STATE,
 					payload,
-				});
-				dispatch({
+				} );
+				dispatch( {
 					type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 					payload: { title: payload.title || '' },
-				});
-			})
-			.catch(() => {
+				} );
+			} )
+			.catch( () => {
 				// Ignore load failures on first run.
-			});
+			} );
 
 		return () => {
 			mounted = false;
 		};
-	}, [currentWidgetId]);
+	}, [ currentWidgetId ] );
 
 	return (
 		<Fragment>

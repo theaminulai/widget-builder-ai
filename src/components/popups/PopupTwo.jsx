@@ -112,7 +112,7 @@ const prompts = [
 			'I need an off-canvas panel widget with a trigger button that slides in a sidebar from the left or right when clicked. The panel should overlay the page with a dark backdrop and close when clicking outside or on a close button. The panel content area should accept any widget. Animate the slide smoothly.',
 	},
 
-	// Marketing & Conversion 
+	// Marketing & Conversion
 
 	{
 		id: 13,
@@ -181,7 +181,7 @@ const prompts = [
 			'I need a reading progress bar widget that displays a thin bar fixed at the top of the page that fills from left to right as the visitor scrolls down the page. Give controls for bar height, color or gradient, z-index, and an option to show or hide the percentage as a label.',
 	},
 
-	//  Media & Portfolio 
+	//  Media & Portfolio
 	{
 		id: 25,
 		category: 'Media & Portfolio',
@@ -253,11 +253,11 @@ const PopupTwo = () => {
 		files,
 		selectedModel,
 	} = useAppContext();
-	const [selectedCategory, setSelectedCategory] = useState('All prompts');
-	const [copiedId, setCopiedId] = useState(null);
+	const [ selectedCategory, setSelectedCategory ] = useState( 'All prompts' );
+	const [ copiedId, setCopiedId ] = useState( null );
 
-	useEffect(() => {
-		if (isPromptLibraryOpen) {
+	useEffect( () => {
+		if ( isPromptLibraryOpen ) {
 			document.body.style.overflow = 'hidden';
 		} else {
 			document.body.style.overflow = 'unset';
@@ -265,31 +265,31 @@ const PopupTwo = () => {
 		return () => {
 			document.body.style.overflow = 'unset';
 		};
-	}, [isPromptLibraryOpen]);
+	}, [ isPromptLibraryOpen ] );
 
-	useEffect(() => {
+	useEffect( () => {
 		/**
 		 * Closes the prompt library when Escape is pressed.
 		 *
 		 * @param {KeyboardEvent} e Keyboard event.
 		 * @return {void}
 		 */
-		const handleEscape = (e) => {
-			if (e.key === 'Escape' && isPromptLibraryOpen) {
-				dispatch({
+		const handleEscape = ( e ) => {
+			if ( e.key === 'Escape' && isPromptLibraryOpen ) {
+				dispatch( {
 					type: APP_ACTIONS.SET_PROMPT_LIBRARY_OPEN,
 					payload: false,
-				});
+				} );
 			}
 		};
-		window.addEventListener('keydown', handleEscape);
-		return () => window.removeEventListener('keydown', handleEscape);
-	}, [isPromptLibraryOpen]);
+		window.addEventListener( 'keydown', handleEscape );
+		return () => window.removeEventListener( 'keydown', handleEscape );
+	}, [ isPromptLibraryOpen ] );
 
 	const filteredPrompts =
 		selectedCategory === 'All prompts'
 			? prompts
-			: prompts.filter((p) => p.category === selectedCategory);
+			: prompts.filter( ( p ) => p.category === selectedCategory );
 
 	/**
 	 * Copies a prompt and persists prompt libraries in widget configuration.
@@ -297,24 +297,24 @@ const PopupTwo = () => {
 	 * @param {{id: number, title: string, description: string, libraries?: Array<{url: string, type: string}>}} prompt Prompt item.
 	 * @return {Promise<void>}
 	 */
-	const handleCopy = async (prompt) => {
-		const promptText = `${prompt.title}: ${prompt.description}`;
-		const promptLibraries = Array.isArray(prompt.libraries)
+	const handleCopy = async ( prompt ) => {
+		const promptText = `${ prompt.title }: ${ prompt.description }`;
+		const promptLibraries = Array.isArray( prompt.libraries )
 			? prompt.libraries
 			: [];
 		const hasPromptLibraries = promptLibraries.length > 0;
 
 		try {
-			await navigator.clipboard.writeText(promptText);
-		} catch (error) {
-			dispatch({
+			await navigator.clipboard.writeText( promptText );
+		} catch ( error ) {
+			dispatch( {
 				type: APP_ACTIONS.SET_AI_ERROR,
 				payload: error?.message || 'Failed to copy prompt text.',
-			});
+			} );
 		}
 
-		setCopiedId(prompt.id);
-		setTimeout(() => setCopiedId(null), 1000);
+		setCopiedId( prompt.id );
+		setTimeout( () => setCopiedId( null ), 1000 );
 
 		const nextWidgetConfig = {
 			...widgetConfig,
@@ -322,45 +322,45 @@ const PopupTwo = () => {
 			selectedLibrary: prompt.title,
 		};
 
-		dispatch({
+		dispatch( {
 			type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 			payload: {
 				libraries: promptLibraries,
 				selectedLibrary: prompt.title,
 			},
-		});
+		} );
 
-		if (!hasPromptLibraries) {
+		if ( ! hasPromptLibraries ) {
 			return;
 		}
 
 		try {
-			const response = await widgetApi.save(currentWidgetId, {
+			const response = await widgetApi.save( currentWidgetId, {
 				widget_id: currentWidgetId || 0,
 				widget_title: widgetConfig.title || 'Untitled Widget',
 				files,
 				model: selectedModel || 'manual-save',
-				summary: `Updated prompt libraries from "${prompt.title}"`,
+				summary: `Updated prompt libraries from "${ prompt.title }"`,
 				widget_config: nextWidgetConfig,
-			});
+			} );
 
-			dispatch({
+			dispatch( {
 				type: APP_ACTIONS.SET_WIDGET_ID,
 				payload: response.widget_id,
-			});
+			} );
 
-			dispatch({
+			dispatch( {
 				type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 				payload: response.widget_config || {
 					libraries: promptLibraries,
 					selectedLibrary: prompt.title,
 				},
-			});
-		} catch (error) {
-			dispatch({
+			} );
+		} catch ( error ) {
+			dispatch( {
 				type: APP_ACTIONS.SET_AI_ERROR,
 				payload: error?.message || 'Failed to save prompt libraries.',
-			});
+			} );
 		}
 	};
 
@@ -370,67 +370,67 @@ const PopupTwo = () => {
 	 * @return {void}
 	 */
 	const handleImportJSON = () => {
-		console.log('Import JSON clicked');
+		console.log( 'Import JSON clicked' );
 	};
 
 	return (
 		<AnimatePresence>
-			{isPromptLibraryOpen && (
+			{ isPromptLibraryOpen && (
 				<>
 					<motion.div
 						className="popup-overlay"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						onClick={() =>
-							dispatch({
+						initial={ { opacity: 0 } }
+						animate={ { opacity: 1 } }
+						exit={ { opacity: 0 } }
+						onClick={ () =>
+							dispatch( {
 								type: APP_ACTIONS.SET_PROMPT_LIBRARY_OPEN,
 								payload: false,
-							})
+							} )
 						}
 					/>
 					<motion.div
 						className="popup-two"
-						initial={{
+						initial={ {
 							opacity: 0,
 							scale: 0.95,
 							x: '-50%',
 							y: '-50%',
-						}}
-						animate={{
+						} }
+						animate={ {
 							opacity: 1,
 							scale: 1,
 							x: '-50%',
 							y: '-50%',
-						}}
-						exit={{
+						} }
+						exit={ {
 							opacity: 0,
 							scale: 0.95,
 							x: '-50%',
 							y: '-50%',
-						}}
-						transition={{ duration: 0.2 }}
+						} }
+						transition={ { duration: 0.2 } }
 					>
 						<div className="popup-two-header">
 							<h2>Prompt Library</h2>
 							<div className="header-actions">
 								<button
 									className="import-button"
-									onClick={handleImportJSON}
+									onClick={ handleImportJSON }
 								>
-									<Upload size={18} />
+									<Upload size={ 18 } />
 									<span>Import JSON</span>
 								</button>
 								<button
 									className="close-button"
-									onClick={() =>
-										dispatch({
+									onClick={ () =>
+										dispatch( {
 											type: APP_ACTIONS.SET_PROMPT_LIBRARY_OPEN,
 											payload: false,
-										})
+										} )
 									}
 								>
-									<X size={20} />
+									<X size={ 20 } />
 								</button>
 							</div>
 						</div>
@@ -439,81 +439,86 @@ const PopupTwo = () => {
 							<div className="category-sidebar">
 								<h3>Categories</h3>
 								<div className="category-list">
-									{categories.map((category) => (
+									{ categories.map( ( category ) => (
 										<button
-											key={category}
-											className={`category-item ${selectedCategory === category
-												? 'active'
-												: ''
-												}`}
-											onClick={() =>
-												setSelectedCategory(category)
+											key={ category }
+											className={ `category-item ${
+												selectedCategory === category
+													? 'active'
+													: ''
+											}` }
+											onClick={ () =>
+												setSelectedCategory( category )
 											}
 										>
-											{category}
+											{ category }
 										</button>
-									))}
+									) ) }
 								</div>
 							</div>
 
 							<div className="prompts-main">
 								<div className="prompts-header">
-									<h3>{selectedCategory}</h3>
+									<h3>{ selectedCategory }</h3>
 									<p>
-										{filteredPrompts.length} prompts
+										{ filteredPrompts.length } prompts
 										available
 									</p>
 								</div>
 
 								<AnimatePresence mode="wait">
 									<motion.div
-										key={selectedCategory}
+										key={ selectedCategory }
 										className="prompts-grid"
-										initial={{ opacity: 0 }}
-										animate={{ opacity: 1 }}
-										exit={{ opacity: 0 }}
-										transition={{
+										initial={ { opacity: 0 } }
+										animate={ { opacity: 1 } }
+										exit={ { opacity: 0 } }
+										transition={ {
 											duration: 0.15,
 											ease: 'easeInOut',
-										}}
+										} }
 									>
-										{filteredPrompts.map((prompt) => (
+										{ filteredPrompts.map( ( prompt ) => (
 											<div
-												key={prompt.id}
+												key={ prompt.id }
 												className="prompt-card"
 											>
 												<div className="prompt-content">
-													<h4>{prompt.title}</h4>
+													<h4>{ prompt.title }</h4>
 													<p>
-														{prompt.description}
+														{ prompt.description }
 													</p>
 												</div>
 												<button
-													className={`copy-button ${copiedId === prompt.id ? 'copied' : ''}`}
-													onClick={() =>
-														handleCopy(prompt)
+													className={ `copy-button ${
+														copiedId === prompt.id
+															? 'copied'
+															: ''
+													}` }
+													onClick={ () =>
+														handleCopy( prompt )
 													}
 												>
-													{copiedId === prompt.id ? (
-														<Check size={18} />
+													{ copiedId === prompt.id ? (
+														<Check size={ 18 } />
 													) : (
-														<Copy size={18} />
-													)}
+														<Copy size={ 18 } />
+													) }
 													<span>
-														{copiedId === prompt.id
+														{ copiedId === prompt.id
 															? 'Copied!'
-															: 'Copy'}
+															: 'Copy' }
 													</span>
 												</button>
 											</div>
-										))}
+										) ) }
 									</motion.div>
 								</AnimatePresence>
 							</div>
 						</div>
 					</motion.div>
 				</>
-			)}
+			) }
 		</AnimatePresence>
 	);
 };

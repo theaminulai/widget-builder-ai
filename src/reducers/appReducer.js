@@ -62,11 +62,11 @@ export const initialState = {
 		selectedLibrary: null,
 		libraries: [],
 	},
-	currentFile: buildFileNamesFromTitle('').php,
-	files: mapCanonicalToNamedFiles({}, ''),
+	currentFile: buildFileNamesFromTitle( '' ).php,
+	files: mapCanonicalToNamedFiles( {}, '' ),
 	selectedModel: 'gpt-4.1-mini',
 	aiError: '',
-	currentWidgetId: normalizeWidgetId(window.widgetBuilderAI?.currentPostId),
+	currentWidgetId: normalizeWidgetId( window.widgetBuilderAI?.currentPostId ),
 	previewUrl: '',
 	statusMessage: '', // For displaying transient status updates (e.g. "Thanking...", "Generating...", "Processing..."), not critical errors
 };
@@ -78,8 +78,8 @@ export const initialState = {
  * @param {{type: string, payload: *}} action Reducer action.
  * @return {Object} Next reducer state.
  */
-export const appReducer = (state, action) => {
-	switch (action.type) {
+export const appReducer = ( state, action ) => {
+	switch ( action.type ) {
 		case APP_ACTIONS.SET_WIDGET_SETUP_POPUP_OPEN:
 			return {
 				...state,
@@ -111,26 +111,35 @@ export const appReducer = (state, action) => {
 			};
 
 		case APP_ACTIONS.ADD_CHAT_MESSAGE:
-			const appendedMessage = normalizeChatMessage(action.payload, state.chatMessages.length);
+			const appendedMessage = normalizeChatMessage(
+				action.payload,
+				state.chatMessages.length
+			);
 			return {
 				...state,
-				chatMessages: [
-					...state.chatMessages,
-					appendedMessage,
-				],
+				chatMessages: [ ...state.chatMessages, appendedMessage ],
 			};
 
 		case APP_ACTIONS.UPDATE_WIDGET_CONFIG:
-			if (Object.prototype.hasOwnProperty.call(action.payload || {}, 'title')) {
-				const nextTitle = action.payload.title || state.widgetConfig.title;
+			if (
+				Object.prototype.hasOwnProperty.call(
+					action.payload || {},
+					'title'
+				)
+			) {
+				const nextTitle =
+					action.payload.title || state.widgetConfig.title;
 				return {
 					...state,
 					widgetConfig: {
 						...state.widgetConfig,
 						...action.payload,
 					},
-					files: mapCanonicalToNamedFiles(state.files, nextTitle),
-					currentFile: remapCurrentFile(state.currentFile, nextTitle),
+					files: mapCanonicalToNamedFiles( state.files, nextTitle ),
+					currentFile: remapCurrentFile(
+						state.currentFile,
+						nextTitle
+					),
 				};
 			}
 
@@ -143,10 +152,17 @@ export const appReducer = (state, action) => {
 			};
 
 		case APP_ACTIONS.SET_CURRENT_FILE:
-			if (action.payload === 'widget.php' || action.payload === 'style.css' || action.payload === 'script.js') {
+			if (
+				action.payload === 'widget.php' ||
+				action.payload === 'style.css' ||
+				action.payload === 'script.js'
+			) {
 				return {
 					...state,
-					currentFile: remapCurrentFile(action.payload, state.widgetConfig.title),
+					currentFile: remapCurrentFile(
+						action.payload,
+						state.widgetConfig.title
+					),
 				};
 			}
 
@@ -156,23 +172,28 @@ export const appReducer = (state, action) => {
 			};
 
 		case APP_ACTIONS.UPDATE_FILE:
-			const names = buildFileNamesFromTitle(state.widgetConfig.title);
+			const names = buildFileNamesFromTitle( state.widgetConfig.title );
 			let filename = action.payload.filename;
 			const content = action.payload.content;
 
-			if (filename === 'widget.php') filename = names.php;
-			if (filename === 'style.css') filename = names.css;
-			if (filename === 'script.js') filename = names.js;
+			if ( filename === 'widget.php' ) filename = names.php;
+			if ( filename === 'style.css' ) filename = names.css;
+			if ( filename === 'script.js' ) filename = names.js;
 
-			if (filename === names.js && (!content || content.toString().trim() === '')) {
+			if (
+				filename === names.js &&
+				( ! content || content.toString().trim() === '' )
+			) {
 				const nextFiles = { ...state.files };
-				delete nextFiles[filename];
+				delete nextFiles[ filename ];
 				return {
 					...state,
 					files: nextFiles,
 					currentFile:
 						state.currentFile === filename
-							? (nextFiles[names.php] ? names.php : Object.keys(nextFiles)[0] || names.css)
+							? nextFiles[ names.php ]
+								? names.php
+								: Object.keys( nextFiles )[ 0 ] || names.css
 							: state.currentFile,
 				};
 			}
@@ -181,7 +202,7 @@ export const appReducer = (state, action) => {
 				...state,
 				files: {
 					...state.files,
-					[filename]: content,
+					[ filename ]: content,
 				},
 			};
 
@@ -200,7 +221,7 @@ export const appReducer = (state, action) => {
 		case APP_ACTIONS.SET_WIDGET_ID:
 			return {
 				...state,
-				currentWidgetId: normalizeWidgetId(action.payload),
+				currentWidgetId: normalizeWidgetId( action.payload ),
 			};
 
 		case APP_ACTIONS.SET_PREVIEW_URL:
@@ -222,22 +243,32 @@ export const appReducer = (state, action) => {
 			};
 
 		case APP_ACTIONS.HYDRATE_WIDGET_STATE:
-			const hydratedTitle = action.payload.title || state.widgetConfig.title;
-			const hydratedMessages = Array.isArray(action.payload.chat_history)
-				? action.payload.chat_history.map((message, index) =>
-					normalizeChatMessage(message, index)
-				)
+			const hydratedTitle =
+				action.payload.title || state.widgetConfig.title;
+			const hydratedMessages = Array.isArray(
+				action.payload.chat_history
+			)
+				? action.payload.chat_history.map( ( message, index ) =>
+						normalizeChatMessage( message, index )
+				  )
 				: state.chatMessages;
 			return {
 				...state,
 				currentWidgetId:
-					normalizeWidgetId(action.payload.widget_id) || state.currentWidgetId,
+					normalizeWidgetId( action.payload.widget_id ) ||
+					state.currentWidgetId,
 				widgetConfig: {
 					...state.widgetConfig,
 					title: hydratedTitle,
 				},
-				files: mapCanonicalToNamedFiles(action.payload.files || state.files, hydratedTitle),
-				currentFile: remapCurrentFile(state.currentFile, hydratedTitle),
+				files: mapCanonicalToNamedFiles(
+					action.payload.files || state.files,
+					hydratedTitle
+				),
+				currentFile: remapCurrentFile(
+					state.currentFile,
+					hydratedTitle
+				),
 				chatMessages: hydratedMessages,
 				previewUrl: action.payload.preview_url || state.previewUrl,
 			};
