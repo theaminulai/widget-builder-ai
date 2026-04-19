@@ -20,7 +20,7 @@ export default function App() {
 	useAddNewButtonHandler({ dispatch });
 	useEditWidgetButtonHandler({ dispatch });
 	useBuilderPageLayout(isBuilderPageOpen);
-
+	
 	useEffect(() => {
 		const widgetId = Number(currentWidgetId) || 0;
 		if (widgetId <= 0) {

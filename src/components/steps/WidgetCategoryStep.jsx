@@ -8,35 +8,40 @@ import { useAppContext } from '../../store/AppContext';
  */
 const categories = [
 	{
-		id: 'elementor',
-		name: 'Elementor Widgets',
-		description: 'Custom widgets for Elementor page builder',
+		id: 'basic',
+		name: 'Basic',
+		description: 'Basic widgets for Elementor page builder',
 	},
 	{
-		id: 'wordpress-admin',
-		name: 'WordPress Admin',
-		description: 'Admin panel customizations and tools',
+		id: 'general',
+		name: 'General',
+		description: 'General purpose widgets for any use case',
 	},
 	{
-		id: 'visual-apps',
-		name: 'Visual Apps',
-		description: 'Interactive visual applications',
+		id: 'link-in-bio',
+		name: 'Link In Bio',
+		description: 'Link in bio widgets for social media integration',
 	},
 	{
-		id: 'interactive-snippets',
-		name: 'Interactive Snippets',
-		description: 'Reusable interactive website components',
+		id: 'theme-elements',
+		name: 'Theme Elements',
+		description: 'Widgets that enhance the theme\'s appearance and functionality',
 	},
 	{
-		id: 'data-visualization',
-		name: 'Data Visualization',
-		description: 'Charts, graphs, and data display widgets',
+		id: 'woocommerce-elements',
+		name: 'Woo Elements',
+		description: 'Widgets specifically designed for WooCommerce integration',
 	},
 	{
-		id: 'forms',
-		name: 'Forms & Input',
-		description: 'Custom form elements and validators',
+		id: 'site',
+		name: 'Site Elements',
+		description: 'Widgets that enhance overall site functionality and user experience',
 	},
+	{
+		id: 'single',
+		name: 'Single',
+		description: 'Widgets designed for single use on a page.',
+	}
 ];
 
 /**

@@ -165,7 +165,7 @@
 
 .prompts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
 }
 
@@ -223,6 +223,18 @@
     background: #3858e9;
     color: #ffffff;
     border-color: #3858e9;
+  }
+
+  &.copied {
+    background: #16a34a;
+    color: #ffffff;
+    border-color: #16a34a;
+  }
+
+  &.copied:hover {
+    background: #16a34a;
+    color: #ffffff;
+    border-color: #16a34a;
   }
 }
 

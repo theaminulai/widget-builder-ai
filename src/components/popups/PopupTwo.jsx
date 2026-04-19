@@ -1,6 +1,7 @@
 import { Check, Copy, Upload, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState } from 'react';
+import { widgetApi } from '../../api/widgetApi';
 import { APP_ACTIONS } from '../../reducers/appReducer.js';
 import { useAppContext } from '../../store/AppContext';
 import './PopupTwo.scss';
@@ -12,92 +13,229 @@ import './PopupTwo.scss';
  */
 const categories = [
 	'All prompts',
-	'Elementor Widgets',
-	'WordPress admin snippets',
-	'Visual apps',
-	'Interactive website snippets',
+	'Content & Display',
+	'Navigation & Layout',
+	'Marketing & Conversion',
+	'Interactive & Effects',
+	'Media & Portfolio',
 ];
 
 /**
  * Built-in prompt library data.
  *
- * @type {Array<{id: number, category: string, title: string, description: string}>}
+ * @type {Array<{id: number, category: string, title: string, description: string, libraries?: Array<{url: string, type: string}>}>}
  */
 const prompts = [
+	//Content & Display
+
 	{
 		id: 1,
-		category: 'Elementor Widgets',
-		title: 'Liquid Effect on Images',
+		category: 'Content & Display',
+		title: 'Testimonial Slider',
+		libraries: [
+			{
+				url: 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js',
+				type: 'js',
+			},
+			{
+				url: 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css',
+				type: 'css',
+			},
+		],
 		description:
-			'Create a liquid distortion effect that follows mouse movement over images',
+			'I need a testimonial widget to show client reviews on my website. Each testimonial should have a client photo, name, position, company, star rating, and review text. Use Swiper JS for the slider with autoplay, navigation arrows, and pagination dots. The card design should be clean and modern with a subtle shadow.',
 	},
 	{
 		id: 2,
-		category: 'Elementor Widgets',
-		title: 'Image Zoom on Scroll',
-		description: 'Parallax image zoom effect triggered by scroll position',
+		category: 'Content & Display',
+		title: 'Team Members Grid',
+		description:
+			'I need a team members widget to display our staff in a grid layout. Each card should show a circular profile photo, full name, job title, a short bio, and social media icon links (LinkedIn, Twitter, Facebook). On hover, show a smooth overlay with the social links. Make it fully responsive.',
 	},
 	{
 		id: 3,
-		category: 'WordPress admin snippets',
-		title: 'Custom Dashboard Widget',
+		category: 'Content & Display',
+		title: 'FAQ Accordion',
 		description:
-			'Add a custom analytics widget to WordPress admin dashboard',
+			'I need a FAQ widget where each question expands and collapses smoothly when clicked to reveal the answer. Only one item should be open at a time. Include a plus/minus icon that animates on toggle. Support rich text in the answer area and give full typography and color controls.',
 	},
 	{
 		id: 4,
-		category: 'Visual apps',
-		title: 'Color Palette Generator',
-		description: 'Generate harmonious color palettes from uploaded images',
+		category: 'Content & Display',
+		title: 'Animated Statistics Counter',
+		description:
+			'I need a statistics counter widget that displays key metrics like total clients, completed projects, years of experience, and team members. Each stat should have an icon, a large animated number that counts up when scrolled into view, and a label below it. Make the layout a responsive row of stat boxes.',
 	},
 	{
 		id: 5,
-		category: 'Visual apps',
-		title: 'SVG Pattern Creator',
-		description: 'Interactive tool to create and customize SVG patterns',
+		category: 'Content & Display',
+		title: 'Timeline',
+		description:
+			'I need a vertical timeline widget to showcase a company history, project milestones, or process steps. Each entry should have a date or year, a title, a description, and an optional icon. Alternate items left and right on desktop and stack them on mobile. Add a connecting line with dot markers between entries.',
 	},
 	{
 		id: 6,
-		category: 'Interactive website snippets',
-		title: 'Animated Counter',
-		description: 'Number counter with smooth animation on viewport enter',
+		category: 'Content & Display',
+		title: 'Progress Bars',
+		description:
+			'I need a skills or progress bar widget that displays multiple items, each with a label and a percentage value. The bars should animate and fill from left to right when they scroll into view. Include controls for bar color, height, border radius, label typography, and percentage display position.',
 	},
 	{
 		id: 7,
-		category: 'Interactive website snippets',
-		title: 'Magnetic Button Effect',
+		category: 'Content & Display',
+		title: 'Icon Box Grid',
 		description:
-			'Button that follows cursor with magnetic attraction effect',
+			'I need an icon box widget that displays a grid of feature cards. Each card should have an Elementor icon, a heading, and a short description. Support hover effects like background color change or icon animation. Give full controls for icon size, color, card background, padding, and border radius.',
 	},
 	{
 		id: 8,
-		category: 'Elementor Widgets',
-		title: '3D Card Hover',
-		description: '3D tilt effect on cards based on mouse position',
+		category: 'Content & Display',
+		title: 'Flip Card',
+		description:
+			'I need a flip card widget where the card rotates 3D on hover to reveal a back side. The front side should show an image and title. The back side should show a description and an optional button. Support both horizontal and vertical flip directions with smooth CSS transition.',
 	},
+
+	//Navigation & Layout
+
 	{
 		id: 9,
-		category: 'Visual apps',
-		title: 'Gradient Generator',
-		description: 'Create and export CSS gradients with live preview',
-	},
-	{
-		id: 10,
-		category: 'WordPress admin snippets',
-		title: 'Bulk Action Enhancer',
-		description: 'Add custom bulk actions to post/page listings',
-	},
-	{
-		id: 11,
-		category: 'Interactive website snippets',
-		title: 'Scroll Progress Bar',
-		description: 'Animated progress bar showing reading progress',
+		category: 'Navigation & Layout',
+		title: 'Tabs Content Widget',
+		description:
+			'I need a tabs widget where clicking each tab label switches the visible content panel below it. Support both horizontal and vertical tab orientations. Include an active indicator line or background highlight on the selected tab. Allow rich content inside each panel and give full style controls for tab labels and panels.',
 	},
 	{
 		id: 12,
-		category: 'Interactive website snippets',
-		title: 'Text Reveal Animation',
-		description: 'Smooth text reveal effect with staggered animation',
+		category: 'Navigation & Layout',
+		title: 'Off-Canvas Sidebar Panel',
+		description:
+			'I need an off-canvas panel widget with a trigger button that slides in a sidebar from the left or right when clicked. The panel should overlay the page with a dark backdrop and close when clicking outside or on a close button. The panel content area should accept any widget. Animate the slide smoothly.',
+	},
+
+	// Marketing & Conversion 
+
+	{
+		id: 13,
+		category: 'Marketing & Conversion',
+		title: 'Pricing Table',
+		description:
+			'I need a pricing table widget that displays multiple plans side by side. Each plan should have a plan name, price with billing period, a highlighted feature list with check icons, and a call to action button. Support a featured or recommended badge on one plan. Add a monthly/yearly toggle switcher that updates prices dynamically.',
+	},
+	{
+		id: 14,
+		category: 'Marketing & Conversion',
+		title: 'Call to Action Banner',
+		description:
+			'I need a call to action widget with a bold headline, a subheadline, a short description, and up to two buttons side by side. Support a full background image with overlay color or a gradient background. Center-align the content and make the layout stack cleanly on mobile.',
+	},
+	{
+		id: 15,
+		category: 'Marketing & Conversion',
+		title: 'Countdown Timer',
+		description:
+			'I need a countdown timer widget that counts down to a specific date and time. Display days, hours, minutes, and seconds in styled boxes with labels. When the timer reaches zero, show a custom message or redirect to a URL. Give full controls for box style, typography, colors, and separator character.',
+	},
+	{
+		id: 17,
+		category: 'Marketing & Conversion',
+		title: 'Social Proof Popup',
+		description:
+			'I need a social proof notification widget that shows small popup toasts in the bottom corner of the page, cycling through messages like recent purchases or sign-ups. Each toast should have an avatar, a name, a message, a location, and a time ago label. Animate them in and out with a slide-up effect and configurable display interval.',
+	},
+	{
+		id: 18,
+		category: 'Marketing & Conversion',
+		title: 'Review Stars Summary',
+		description:
+			'I need a review summary widget that displays an overall star rating with a score like 4.8 out of 5, a total review count, and a breakdown bar chart showing how many reviews gave each star level from 5 to 1. Give full style controls for stars, bars, and typography.',
+	},
+
+	//Interactive & Effects
+
+	{
+		id: 19,
+		category: 'Interactive & Effects',
+		title: 'Before & After Image Comparison',
+		description:
+			'I need a before and after image comparison widget with a vertical draggable divider that the visitor can slide left or right to reveal the two images. Show labels on each side like "Before" and "After". Make the drag handle visually prominent with an icon. Support touch dragging on mobile.',
+	},
+	{
+		id: 21,
+		category: 'Interactive & Effects',
+		title: 'Magnetic Hover Button',
+		description:
+			'I need a button widget with a magnetic hover effect where the button follows the cursor slightly as the mouse moves near it, creating an attraction effect. The button should have a smooth spring-like animation and return to its original position when the cursor leaves. Give full controls for button style, size, color, and label.',
+	},
+	{
+		id: 23,
+		category: 'Interactive & Effects',
+		title: 'Text Typing Animation',
+		description:
+			'I need a text widget that types out multiple phrases one character at a time, pauses, then deletes and types the next phrase in a loop — like a typewriter effect. Give controls for the list of phrases, typing speed, delete speed, pause duration, cursor style, and all typography options.',
+	},
+	{
+		id: 24,
+		category: 'Interactive & Effects',
+		title: 'Scroll Progress Bar',
+		description:
+			'I need a reading progress bar widget that displays a thin bar fixed at the top of the page that fills from left to right as the visitor scrolls down the page. Give controls for bar height, color or gradient, z-index, and an option to show or hide the percentage as a label.',
+	},
+
+	//  Media & Portfolio 
+	{
+		id: 25,
+		category: 'Media & Portfolio',
+		title: 'Portfolio Filter Grid',
+		description:
+			'I need a portfolio widget with a category filter toolbar above a masonry or grid layout of project cards. Each card should show a thumbnail, project title, category tag, and a hover overlay with a view button. Clicking a filter button should animate the grid to show only matching items. Make it fully responsive.',
+	},
+	{
+		id: 26,
+		category: 'Media & Portfolio',
+		title: 'Logo Carousel',
+		libraries: [
+			{
+				url: 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js',
+				type: 'js',
+			},
+			{
+				url: 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css',
+				type: 'css',
+			},
+		],
+		description:
+			'I need a logo showcase widget that displays client or partner logos in a continuously auto-scrolling marquee strip using Swiper JS with loop mode. Logos should be grayscale by default and turn to full color on hover. Give controls for logo size, scroll speed, spacing, and number of visible logos per breakpoint.',
+	},
+	{
+		id: 27,
+		category: 'Media & Portfolio',
+		title: 'Image Lightbox Gallery',
+		description:
+			'I need an image gallery widget that displays photos in a responsive grid. Clicking any image should open it in a fullscreen lightbox overlay with prev/next navigation arrows and a close button. Support keyboard navigation with arrow keys and Escape to close. Give controls for grid columns, gap, image border radius, and overlay color.',
+	},
+	{
+		id: 29,
+		category: 'Media & Portfolio',
+		title: 'Product Showcase Slider',
+		libraries: [
+			{
+				url: 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js',
+				type: 'js',
+			},
+			{
+				url: 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css',
+				type: 'css',
+			},
+		],
+		description:
+			'I need a product showcase widget using Swiper JS that displays product cards in a slider. Each card should show a product image, name, short description, price, and an add to cart or view button. Support thumbnail navigation below the main slider. Give full style controls for card layout, typography, button, and colors.',
+	},
+	{
+		id: 30,
+		category: 'Media & Portfolio',
+		title: 'Instagram Feed Grid',
+		description:
+			'I need an Instagram-style photo feed widget that displays images in a clean square grid layout. Each image should show a hover overlay with a like count, comment count, and a link icon. Clicking the image opens it in a lightbox. Give controls for grid columns per breakpoint, gap size, overlay color, and image border radius.',
 	},
 ];
 
@@ -107,7 +245,14 @@ const prompts = [
  * @return {JSX.Element} Prompt library popup.
  */
 const PopupTwo = () => {
-	const { isPromptLibraryOpen, dispatch } = useAppContext();
+	const {
+		isPromptLibraryOpen,
+		dispatch,
+		currentWidgetId,
+		widgetConfig,
+		files,
+		selectedModel,
+	} = useAppContext();
 	const [selectedCategory, setSelectedCategory] = useState('All prompts');
 	const [copiedId, setCopiedId] = useState(null);
 
@@ -139,7 +284,7 @@ const PopupTwo = () => {
 		};
 		window.addEventListener('keydown', handleEscape);
 		return () => window.removeEventListener('keydown', handleEscape);
-	}, [dispatch, isPromptLibraryOpen]);
+	}, [isPromptLibraryOpen]);
 
 	const filteredPrompts =
 		selectedCategory === 'All prompts'
@@ -147,35 +292,76 @@ const PopupTwo = () => {
 			: prompts.filter((p) => p.category === selectedCategory);
 
 	/**
-	 * Copies a prompt and appends it to chat as a user message.
+	 * Copies a prompt and persists prompt libraries in widget configuration.
 	 *
-	 * @param {{id: number, title: string, description: string}} prompt Prompt item.
-	 * @return {void}
+	 * @param {{id: number, title: string, description: string, libraries?: Array<{url: string, type: string}>}} prompt Prompt item.
+	 * @return {Promise<void>}
 	 */
-	const handleCopy = (prompt) => {
-		navigator.clipboard.writeText(
-			`${prompt.title}: ${prompt.description}`
-		);
+	const handleCopy = async (prompt) => {
+		const promptText = `${prompt.title}: ${prompt.description}`;
+		const promptLibraries = Array.isArray(prompt.libraries)
+			? prompt.libraries
+			: [];
+		const hasPromptLibraries = promptLibraries.length > 0;
+
+		try {
+			await navigator.clipboard.writeText(promptText);
+		} catch (error) {
+			dispatch({
+				type: APP_ACTIONS.SET_AI_ERROR,
+				payload: error?.message || 'Failed to copy prompt text.',
+			});
+		}
+
 		setCopiedId(prompt.id);
-		setTimeout(() => setCopiedId(null), 2000);
+		setTimeout(() => setCopiedId(null), 1000);
+
+		const nextWidgetConfig = {
+			...widgetConfig,
+			libraries: promptLibraries,
+			selectedLibrary: prompt.title,
+		};
 
 		dispatch({
-			type: APP_ACTIONS.ADD_CHAT_MESSAGE,
+			type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
 			payload: {
-				role: 'user',
-				content: `${prompt.title}: ${prompt.description}`,
+				libraries: promptLibraries,
+				selectedLibrary: prompt.title,
 			},
 		});
 
-		setTimeout(() => {
+		if (!hasPromptLibraries) {
+			return;
+		}
+
+		try {
+			const response = await widgetApi.save(currentWidgetId, {
+				widget_id: currentWidgetId || 0,
+				widget_title: widgetConfig.title || 'Untitled Widget',
+				files,
+				model: selectedModel || 'manual-save',
+				summary: `Updated prompt libraries from "${prompt.title}"`,
+				widget_config: nextWidgetConfig,
+			});
+
 			dispatch({
-				type: APP_ACTIONS.ADD_CHAT_MESSAGE,
-				payload: {
-					role: 'assistant',
-					content: `I'll help you create "${prompt.title}". Let me start building this for you...`,
+				type: APP_ACTIONS.SET_WIDGET_ID,
+				payload: response.widget_id,
+			});
+
+			dispatch({
+				type: APP_ACTIONS.UPDATE_WIDGET_CONFIG,
+				payload: response.widget_config || {
+					libraries: promptLibraries,
+					selectedLibrary: prompt.title,
 				},
 			});
-		}, 1000);
+		} catch (error) {
+			dispatch({
+				type: APP_ACTIONS.SET_AI_ERROR,
+				payload: error?.message || 'Failed to save prompt libraries.',
+			});
+		}
 	};
 
 	/**
@@ -257,8 +443,8 @@ const PopupTwo = () => {
 										<button
 											key={category}
 											className={`category-item ${selectedCategory === category
-													? 'active'
-													: ''
+												? 'active'
+												: ''
 												}`}
 											onClick={() =>
 												setSelectedCategory(category)
@@ -303,7 +489,7 @@ const PopupTwo = () => {
 													</p>
 												</div>
 												<button
-													className="copy-button"
+													className={`copy-button ${copiedId === prompt.id ? 'copied' : ''}`}
 													onClick={() =>
 														handleCopy(prompt)
 													}

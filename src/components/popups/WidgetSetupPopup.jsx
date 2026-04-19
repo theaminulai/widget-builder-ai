@@ -54,7 +54,7 @@ const WidgetSetupPopup = () => {
 		};
 		window.addEventListener('keydown', handleEscape);
 		return () => window.removeEventListener('keydown', handleEscape);
-	}, [dispatch, isWidgetSetupPopupOpen]);
+	}, [isWidgetSetupPopupOpen]);
 
 	/**
 	 * Advances to the next setup step.

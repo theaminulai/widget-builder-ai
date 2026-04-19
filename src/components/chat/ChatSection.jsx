@@ -41,7 +41,7 @@ const ChatSection = () => {
 		widgetConfig,
 		currentWidgetId,
 	} = useAppContext();
-
+	
 	const [inputValue, setInputValue] = useState('');
 	const messagesEndRef = useRef(null);
 
@@ -86,7 +86,7 @@ const ChatSection = () => {
 			type: APP_ACTIONS.SET_STATUS_MESSAGE,
 			payload: 'Tinkering...',
 		});
-
+		
 		try {
 			const result = await widgetApi.generate({
 				message,
@@ -334,16 +334,15 @@ const ChatSection = () => {
 								title="Select AI model"
 							>
 								<option value=''>Select a model</option>
+								{/* <option value="gemini-3-flash">Gemini 3 Flash</option> */}
 								<option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-								<option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+								<option value="gemini-3.1-pro">Gemini 3.1 Pro</option>
+								<option value="claude-opus-4-7">Claude 4.7 Opus</option>
+								<option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option>
+								<option value="gpt-4o">GPT-4o</option>
+								<option value="gpt-5.4">GPT-5.4</option>
 								<option value="deepseek-chat">DeepSeek Chat</option>
 								<option value="deepseek-reasoner">DeepSeek Reasoner</option>
-								<option value="claude-3-opus">Claude 3 Opus</option>
-								<option value="claude-4-sonnet">Claude 4 Sonnet</option>
-								<option value="claude-4.5-haiku">Claude 4.5 Haiku</option>
-								<option value="gpt-4">gpt-4</option>
-								<option value="gpt-4.1">gpt-4.1</option>
-								<option value="gpt-4o-mini">gpt-4o-mini</option>
 							</select>
 						</div>
 
