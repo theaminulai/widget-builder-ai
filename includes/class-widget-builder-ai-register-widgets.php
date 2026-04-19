@@ -226,7 +226,7 @@ class Widget_Builder_AI_Register_Widgets {
 	private function get_libraries_by_type( $config, $type ) {
 		$type      = sanitize_key( (string) $type );
 		$libraries = array();
-
+		
 		if ( ! is_array( $config ) || empty( $config['libraries'] ) || ! is_array( $config['libraries'] ) ) {
 			return $libraries;
 		}

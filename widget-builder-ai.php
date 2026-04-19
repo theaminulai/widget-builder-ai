@@ -41,11 +41,12 @@ define( 'AI_DEEPSEEK_API_ENDPOINT', 'https://api.deepseek.com/chat/completions' 
 function widget_builder_ai_init_plugin() {
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-cpt.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-assets.php';
+	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-json-repair.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-claude-adapter.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-openai-adapter.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-gemini-adapter.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-deepseek-adapter.php';
-	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-ai-handler.php';
+	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-handler.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-version-manager.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-generator.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-register-widgets.php';

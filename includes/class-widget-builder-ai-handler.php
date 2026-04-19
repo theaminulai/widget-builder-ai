@@ -121,7 +121,6 @@ class Widget_Builder_AI_Handler {
 				if ( ! $this->claude_adapter->is_configured() ) {
 					return new WP_Error( 'claude_not_configured', __( 'Claude provider not configured.', 'widget-builder-ai' ) );
 				}
-
 				$claude_model = 0 === strpos( strtolower( (string) $model ), 'claude' ) ? $model : 'claude-3-5-sonnet-latest';
 				return $this->claude_adapter->generate_spec( $message, $context, $claude_model );
 
@@ -129,15 +128,13 @@ class Widget_Builder_AI_Handler {
 				if ( ! $this->gemini_adapter->is_configured() ) {
 					return new WP_Error( 'gemini_not_configured', __( 'Gemini provider not configured.', 'widget-builder-ai' ) );
 				}
-
-				$gemini_model = 0 === strpos( strtolower( (string) $model ), 'gemini' ) ? $model : 'gemini-3-flash';
+				$gemini_model = 0 === strpos( strtolower( (string) $model ), 'gemini' ) ? $model : 'gemini-2.5-flash';
 				return $this->gemini_adapter->generate_spec( $message, $context, $gemini_model );
 
 			case 'deepseek':
 				if ( ! $this->deepseek_adapter->is_configured() ) {
 					return new WP_Error( 'deepseek_not_configured', __( 'DeepSeek provider not configured.', 'widget-builder-ai' ) );
 				}
-
 				$deepseek_model = 0 === strpos( strtolower( (string) $model ), 'deepseek' ) ? $model : 'deepseek-chat';
 				return $this->deepseek_adapter->generate_spec( $message, $context, $deepseek_model );
 
@@ -146,12 +143,15 @@ class Widget_Builder_AI_Handler {
 				if ( ! $this->openai_adapter->has_api_key() ) {
 					return new WP_Error( 'openai_not_configured', __( 'OpenAI provider not configured.', 'widget-builder-ai' ) );
 				}
-
 				$openai_model = $model;
-				if ( 0 === strpos( strtolower( (string) $openai_model ), 'claude' ) || 0 === strpos( strtolower( (string) $openai_model ), 'gemini' ) || 0 === strpos( strtolower( (string) $openai_model ), 'deepseek' ) || '' === $openai_model ) {
+				if (
+					0 === strpos( strtolower( (string) $openai_model ), 'claude' ) ||
+					0 === strpos( strtolower( (string) $openai_model ), 'gemini' ) ||
+					0 === strpos( strtolower( (string) $openai_model ), 'deepseek' ) ||
+					'' === $openai_model
+				) {
 					$openai_model = 'gpt-4.1-mini';
 				}
-
 				return $this->openai_adapter->generate_spec( $message, $context, $openai_model );
 		}
 	}
@@ -196,11 +196,9 @@ class Widget_Builder_AI_Handler {
 		}
 
 		$categories = $config_categories;
-
 		if ( empty( $categories ) && isset( $spec['categories'] ) && is_array( $spec['categories'] ) ) {
 			$categories = array_values( array_filter( array_map( 'sanitize_text_field', $spec['categories'] ) ) );
 		}
-
 		if ( empty( $categories ) ) {
 			$categories = array( 'basic' );
 		}
@@ -210,13 +208,15 @@ class Widget_Builder_AI_Handler {
 		$js_includes      = $library_includes['js_includes'];
 		$summary          = isset( $spec['summary'] ) ? sanitize_textarea_field( $spec['summary'] ) : 'Generated widget update.';
 
+		$js = isset( $spec['js'] ) ? trim( (string) $spec['js'] ) : '';
+
 		return array(
 			'title'        => $title,
 			'icon'         => $icon,
 			'categories'   => $categories,
-			'markup'       => isset( $spec['markup'] ) ? (string) $spec['markup'] : '',
+			'php'          => isset( $spec['php'] ) ? (string) $spec['php'] : '',
 			'css'          => isset( $spec['css'] ) ? (string) $spec['css'] : '',
-			'js'           => isset( $spec['js'] ) ? (string) $spec['js'] : '',
+			'js'           => $js,
 			'css_includes' => $css_includes,
 			'js_includes'  => $js_includes,
 			'summary'      => $summary,
@@ -277,8 +277,6 @@ class Widget_Builder_AI_Handler {
 		if ( '' === $message ) {
 			return '';
 		}
-
-		$short = mb_substr( $message, 0, 50 );
-		return 'AI ' . $short;
+		return 'AI ' . mb_substr( $message, 0, 50 );
 	}
 }

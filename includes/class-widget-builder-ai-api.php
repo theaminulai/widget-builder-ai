@@ -150,8 +150,9 @@ class Widget_Builder_AI_API {
 		$files     = isset( $params['files'] ) ? $params['files'] : array();
 		$model     = isset( $params['model'] ) ? (string) $params['model'] : 'manual-save';
 		$summary   = isset( $params['summary'] ) ? (string) $params['summary'] : 'Manual code update';
+		$widget_config = isset( $params['widget_config'] ) && is_array( $params['widget_config'] ) ? $params['widget_config'] : array();
 
-		$result = $this->generator->save_files( $widget_id, $files, $model, $summary, $widget_title );
+		$result = $this->generator->save_files( $widget_id, $files, $model, $summary, $widget_title, $widget_config );
 		if ( is_wp_error( $result ) ) {
 			return new WP_REST_Response(
 				array(

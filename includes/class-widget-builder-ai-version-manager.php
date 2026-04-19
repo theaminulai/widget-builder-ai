@@ -62,7 +62,7 @@ class Widget_Builder_AI_Version_Manager {
 			}
 		}
 
-		update_post_meta( $widget_id, self::META_VERSIONS, $versions );
+		update_post_meta( $widget_id, self::META_VERSIONS, wp_slash( $versions ) );
 		update_post_meta( $widget_id, self::META_CURRENT_VERSION, $next );
 
 		return $next;

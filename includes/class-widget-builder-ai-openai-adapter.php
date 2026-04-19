@@ -44,7 +44,7 @@ class Widget_Builder_AI_OpenAI_Adapter {
 	 * @return bool True if configured, false otherwise.
 	 */
 	public function has_api_key() {
-		return ! empty( $this->api_key );
+		return ! empty( $this->api_key ) && ! empty( $this->endpoint );
 	}
 
 	/**
@@ -149,32 +149,7 @@ class Widget_Builder_AI_OpenAI_Adapter {
 	 * @return array|null Decoded JSON array or null when extraction fails.
 	 */
 	private function extract_json( $content ) {
-		$trimmed = trim( $content );
-
-		if ( '{' === substr( $trimmed, 0, 1 ) ) {
-			$decoded = json_decode( $trimmed, true );
-			if ( is_array( $decoded ) ) {
-				return $decoded;
-			}
-		}
-
-		if ( preg_match( '/```(?:json)?\s*(\{[\s\S]*\})\s*```/i', $content, $matches ) ) {
-			$decoded = json_decode( $matches[1], true );
-			if ( is_array( $decoded ) ) {
-				return $decoded;
-			}
-		}
-
-		$start = strpos( $content, '{' );
-		$end   = strrpos( $content, '}' );
-		if ( false !== $start && false !== $end && $end > $start ) {
-			$decoded = json_decode( substr( $content, $start, ( $end - $start + 1 ) ), true );
-			if ( is_array( $decoded ) ) {
-				return $decoded;
-			}
-		}
-
-		return null;
+		return Widget_Builder_AI_JSON_Repair::extract( $content );
 	}
 }
 

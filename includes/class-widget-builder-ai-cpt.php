@@ -22,7 +22,8 @@ class Widget_Builder_AI_CPT {
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_cpt' ) );
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
-		add_action( 'before_delete_post', array( $this, 'delete_widget_assets' ), 10, 1 );
+		add_action( 'delete_post', array( $this, 'delete_widget_assets' ), 10, 1 );
+		add_action( 'wp_trash_post', array( $this, 'delete_widget_assets' ), 10, 1 );
 	}
 
 	/**
