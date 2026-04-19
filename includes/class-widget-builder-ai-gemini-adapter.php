@@ -100,8 +100,7 @@ class Widget_Builder_AI_Gemini_Adapter {
 		}
 
 		$parsed = $this->extract_json( $content );
-		error_log('Gemini raw content: ' . $content);
-		error_log('Gemini parsed content: ' . json_encode( $parsed ));
+
 
 		if ( ! is_array( $parsed ) ) {
 			return new WP_Error( 'gemini_parse_failed', __( 'Could not parse Gemini response into a valid widget spec.', 'widget-builder-ai' ) );

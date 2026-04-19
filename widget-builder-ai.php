@@ -29,9 +29,6 @@ define( 'AI_OPENAI_API_ENDPOINT', 'https://api.openai.com/v1/chat/completions' )
 define( 'AI_GEMINI_API_KEY', '' );
 define( 'AI_GEMINI_API_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta/models' );
 
-define( 'AI_DEEPSEEK_API_KEY', '' );
-define( 'AI_DEEPSEEK_API_ENDPOINT', 'https://api.deepseek.com/chat/completions' );
-
 /**
  * Initializes the plugin by requiring necessary files and instantiating classes.
  *
@@ -45,7 +42,6 @@ function widget_builder_ai_init_plugin() {
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-claude-adapter.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-openai-adapter.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-gemini-adapter.php';
-	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-deepseek-adapter.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-handler.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-version-manager.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-generator.php';

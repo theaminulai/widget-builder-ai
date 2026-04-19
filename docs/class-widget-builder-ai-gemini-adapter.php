@@ -104,7 +104,7 @@ class Widget_Builder_AI_Gemini_Adapter {
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = wp_remote_retrieve_body( $response );
 		$data = json_decode( $body, true );
-		error_log( 'Gemini raw response: ' . print_r( $data, true ) );
+		
 		if ( $code < 200 || $code >= 300 ) {
 			return new WP_Error(
 				'gemini_request_failed',

@@ -36,20 +36,12 @@ class Widget_Builder_AI_Handler {
 	private $gemini_adapter;
 
 	/**
-	 * DeepSeek adapter instance.
-	 *
-	 * @var Widget_Builder_AI_DeepSeek_Adapter
-	 */
-	private $deepseek_adapter;
-
-	/**
 	 * Constructor.
 	 */
 	public function __construct() {
 		$this->claude_adapter   = new Widget_Builder_AI_Claude_Adapter();
 		$this->openai_adapter   = new Widget_Builder_AI_OpenAI_Adapter();
 		$this->gemini_adapter   = new Widget_Builder_AI_Gemini_Adapter();
-		$this->deepseek_adapter = new Widget_Builder_AI_DeepSeek_Adapter();
 	}
 
 	/**
@@ -65,7 +57,7 @@ class Widget_Builder_AI_Handler {
 		$model             = (string) $model;
 		$selected_provider = $this->detect_provider_from_model( $model );
 
-		$providers = array( $selected_provider, 'openai', 'claude', 'gemini', 'deepseek' );
+		$providers = array( $selected_provider, 'openai', 'claude', 'gemini' );
 		$providers = array_values( array_unique( array_filter( $providers ) ) );
 
 		foreach ( $providers as $provider ) {
@@ -82,7 +74,7 @@ class Widget_Builder_AI_Handler {
 	 * Detects the AI provider based on the model name.
 	 *
 	 * @param string $model The model name.
-	 * @return string The provider name (claude, gemini, deepseek, or openai).
+	 * @return string The provider name (claude, gemini, or openai).
 	 */
 	private function detect_provider_from_model( $model ) {
 		$model = strtolower( (string) $model );
@@ -93,10 +85,6 @@ class Widget_Builder_AI_Handler {
 
 		if ( 0 === strpos( $model, 'gemini' ) ) {
 			return 'gemini';
-		}
-
-		if ( 0 === strpos( $model, 'deepseek' ) ) {
-			return 'deepseek';
 		}
 
 		if ( '' !== $model ) {
@@ -130,13 +118,6 @@ class Widget_Builder_AI_Handler {
 				}
 				$gemini_model = 0 === strpos( strtolower( (string) $model ), 'gemini' ) ? $model : 'gemini-2.5-flash';
 				return $this->gemini_adapter->generate_spec( $message, $context, $gemini_model );
-
-			case 'deepseek':
-				if ( ! $this->deepseek_adapter->is_configured() ) {
-					return new WP_Error( 'deepseek_not_configured', __( 'DeepSeek provider not configured.', 'widget-builder-ai' ) );
-				}
-				$deepseek_model = 0 === strpos( strtolower( (string) $model ), 'deepseek' ) ? $model : 'deepseek-chat';
-				return $this->deepseek_adapter->generate_spec( $message, $context, $deepseek_model );
 
 			case 'openai':
 			default:

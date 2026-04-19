@@ -341,8 +341,8 @@ const ChatSection = () => {
 								<option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option>
 								<option value="gpt-4o">GPT-4o</option>
 								<option value="gpt-5.4">GPT-5.4</option>
-								<option value="deepseek-chat">DeepSeek Chat</option>
-								<option value="deepseek-reasoner">DeepSeek Reasoner</option>
+								{/* <option value="deepseek-chat">DeepSeek Chat</option>
+								<option value="deepseek-reasoner">DeepSeek Reasoner</option> */}
 							</select>
 						</div>
 
