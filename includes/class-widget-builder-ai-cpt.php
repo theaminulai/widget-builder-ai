@@ -75,7 +75,8 @@ class Widget_Builder_AI_CPT {
 		}
 
 		add_submenu_page(
-			'elementskit',
+			// 'elementskit',
+			'eael-settings',
 			__( 'Widget Builder AI', 'widget-builder-ai' ),
 			__( 'Widget Builder AI', 'widget-builder-ai' ),
 			'manage_options',

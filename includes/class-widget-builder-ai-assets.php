@@ -62,7 +62,13 @@ class Widget_Builder_AI_Assets {
 
 		$current_post_id = 0;
 		if ( ! empty( $_GET['post'] ) ) {
-			$current_post_id = absint( wp_unslash( $_GET['post'] ) );
+			// Only allow if a valid nonce is present in the request (if used in your UI)
+			if ( isset( $_GET['_wpnonce'] ) ) {
+				$nonce = sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) );
+				if ( wp_verify_nonce( $nonce, 'edit-post_' . absint( $_GET['post'] ) ) ) {
+					$current_post_id = absint( wp_unslash( $_GET['post'] ) );
+				}
+			}
 		}
 
 		wp_localize_script(

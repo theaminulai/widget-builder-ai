@@ -50,7 +50,7 @@ const prompts = [
 		category: 'Content & Display',
 		title: 'Team Members Grid',
 		description:
-			'I need a team members widget to display our staff in a grid layout. Each card should show a circular profile photo, full name, job title, a short bio, and social media icon links (LinkedIn, Twitter, Facebook). On hover, show a smooth overlay with the social links. Make it fully responsive.',
+			'I need a Team Member Card widget for my website. It should display a staff profile with a photo or auto-generated initials avatar, name, job title, bio, and an optional department tag. Include social links for LinkedIn, Twitter/X, GitHub, and Email as optional URL fields. The card should have a centered layout with the avatar on top and text centered, a circle avatar shape, subtle border style, and a lift hover effect. Include a switcher to show or hide the department tag. Make it fully responsive.',
 	},
 	{
 		id: 3,

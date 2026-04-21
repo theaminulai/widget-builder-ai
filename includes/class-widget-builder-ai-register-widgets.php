@@ -134,13 +134,13 @@ class Widget_Builder_AI_Register_Widgets {
 			if ( ! empty( $widget['storage']['files']['style.css'] ) ) {
 				$url = esc_url_raw( (string) $widget['storage']['files']['style.css'] );
 				if ( '' !== $url ) {
-					wp_enqueue_style( 'wbai-widget-style-' . absint( $widget['id'] ), $url, array(), null );
+                    wp_enqueue_style( 'wbai-widget-style-' . absint( $widget['id'] ), $url, array(), WIDGET_BUILDER_AI_VERSION );
 				}
 			}
 
 			foreach ( $this->get_libraries_by_type( $widget['config'], 'css' ) as $url ) {
 				$handle = $this->build_library_handle( $widget['id'], $url, 'css' );
-				wp_enqueue_style( $handle, $url, array(), null );
+                wp_enqueue_style( $handle, $url, array(), WIDGET_BUILDER_AI_VERSION );
 			}
 		}
 	}
@@ -157,13 +157,13 @@ class Widget_Builder_AI_Register_Widgets {
 			if ( ! empty( $widget['storage']['files']['script.js'] ) ) {
 				$url = esc_url_raw( (string) $widget['storage']['files']['script.js'] );
 				if ( '' !== $url ) {
-					wp_enqueue_script( 'wbai-widget-script-' . absint( $widget['id'] ), $url, array( 'jquery' ), null, true );
+                    wp_enqueue_script( 'wbai-widget-script-' . absint( $widget['id'] ), $url, array( 'jquery' ), WIDGET_BUILDER_AI_VERSION, true );
 				}
 			}
 
 			foreach ( $this->get_libraries_by_type( $widget['config'], 'js' ) as $url ) {
 				$handle = $this->build_library_handle( $widget['id'], $url, 'js' );
-				wp_enqueue_script( $handle, $url, array(), null, true );
+                wp_enqueue_script( $handle, $url, array(), WIDGET_BUILDER_AI_VERSION, true );
 			}
 		}
 	}

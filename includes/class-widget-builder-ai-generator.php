@@ -530,55 +530,30 @@ class Widget_Builder_AI_Generator {
 	 */
 	private function delete_directory_recursively( $directory ) {
 		$directory = wp_normalize_path( trailingslashit( (string) $directory ) );
+
 		if ( empty( $directory ) || ! file_exists( $directory ) ) {
 			return false;
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/file.php';
-		$creds = request_filesystem_credentials( '', '', false, false, null );
 
-		if ( WP_Filesystem( $creds ) ) {
-			global $wp_filesystem;
-
-			if ( $wp_filesystem && method_exists( $wp_filesystem, 'delete' ) ) {
-				$result = $wp_filesystem->delete( $directory, true );
-
-				if ( $result ) {
-					return true;
-				}
-			}
-		}
-
-		// ✅ Fallback: native PHP delete (more reliable in many servers)
-		$items = scandir( $directory );
-		if ( ! is_array( $items ) ) {
+		// Initialize filesystem without asking for credentials (safe for uploads dir)
+		if ( ! WP_Filesystem() ) {
 			return false;
 		}
 
-		foreach ( $items as $item ) {
-			if ( $item === '.' || $item === '..' ) {
-				continue;
-			}
+		global $wp_filesystem;
 
-			$path = $directory . $item;
-			if ( is_dir( $path ) ) {
-				$this->delete_directory_recursively( $path );
-			} else {
-				if ( file_exists( $path ) ) {
-					if ( ! @unlink( $path ) ) {
-						error_log( 'Failed to delete file: ' . $path );
-					}
-				}
-			}
-		}
-
-		// Remove main directory
-		if ( ! @rmdir( $directory ) ) {
-			error_log( 'Failed to remove directory: ' . $directory );
+		if ( ! $wp_filesystem ) {
 			return false;
 		}
 
-		return true;
+		// Use WP filesystem recursive delete
+		if ( method_exists( $wp_filesystem, 'delete' ) ) {
+			return $wp_filesystem->delete( $directory, true );
+		}
+
+		return false;
 	}
 
 	/**
@@ -595,14 +570,13 @@ class Widget_Builder_AI_Generator {
 
 		$existing = get_posts(
 			array(
-				'post_type'        => 'widget_builder_ai',
-				'post_status'      => 'any',
-				'title'            => $widget_title,
-				'numberposts'      => 1,
-				'orderby'          => 'ID',
-				'order'            => 'ASC',
-				'fields'           => 'ids',
-				'suppress_filters' => true,
+				'post_type'   => 'widget_builder_ai',
+				'post_status' => 'any',
+				'title'       => $widget_title,
+				'numberposts' => 1,
+				'orderby'     => 'ID',
+				'order'       => 'ASC',
+				'fields'      => 'ids',
 			)
 		);
 

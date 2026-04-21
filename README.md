@@ -1,5 +1,9 @@
 # Widget Builder AI
 
+<p align="center">
+  <img src="screenshot.png" alt="Widget Builder AI Screenshot" width="600" />
+</p>
+
 Widget Builder AI is a WordPress plugin that generates Elementor widgets from natural language prompts. It includes a step-based setup wizard, chat-driven generation, code editing, preview, version history, and rollback.
 
 ## Overview
@@ -13,7 +17,6 @@ The plugin registers a custom post type for generated widgets, adds an admin Rea
   - OpenAI
   - Claude
   - Gemini
-  - DeepSeek
 - Provider fallback if one adapter fails.
 - Setup wizard:
   - Widget title
@@ -50,7 +53,6 @@ The plugin currently reads AI settings from constants defined in widget-builder-
 define( 'AI_OPENAI_API_KEY', 'your-openai-api-key' );
 define( 'AI_CLAUDE_API_KEY', 'your-claude-api-key' );
 define( 'AI_GEMINI_API_KEY', 'your-gemini-api-key' );
-define( 'AI_DEEPSEEK_API_KEY', 'your-deepseek-api-key' );
 ```
 
 For production sites, do not hardcode secrets in plugin source. Move keys to a safer configuration location for your deployment workflow.
