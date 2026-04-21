@@ -1,7 +1,7 @@
 # Widget Builder AI
 
 <p align="center">
-  <img src="screenshot.png" alt="Widget Builder AI Screenshot" width="600" />
+  <img src="screenshot.png" alt="Widget Builder AI Screenshot" />
 </p>
 
 Widget Builder AI is a WordPress plugin that generates Elementor widgets from natural language prompts. It includes a step-based setup wizard, chat-driven generation, code editing, preview, version history, and rollback.
