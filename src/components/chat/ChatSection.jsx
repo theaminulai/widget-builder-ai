@@ -345,14 +345,19 @@ const ChatSection = () => {
 							>
 								<option value="">Select a model</option>
 								{ /* <option value="gemini-3-flash">Gemini 3 Flash</option> */ }
-								<option value="gemini-2.5-flash"> Gemini 2.5 Flash</option>
-								<option value="gemini-3.1-pro"> Gemini 3.1 Pro</option>
-								<option value="claude-haiku-4-5"> Claude 4.5 Haiku </option>
-								<option value="claude-sonnet-4-6">Claude 4.6 Sonnet </option>
+								<option value="gemini-2.5-flash">
+									{ ' ' }
+									Gemini 2.5 Flash
+								</option>
+								{ /* <option value="gemini-3.1-pro"> Gemini 3.1 Pro</option> */ }
+								<option value="claude-opus-4-7">
+									Claude 4.5 Opus{ ' ' }
+								</option>
+								<option value="claude-sonnet-4-6">
+									Claude 4.6 Sonnet{ ' ' }
+								</option>
 								<option value="gpt-4o">GPT-4o</option>
-								<option value="gpt-5.4">GPT-5.4</option>
-								{ /* <option value="deepseek-chat">DeepSeek Chat</option>
-								<option value="deepseek-reasoner">DeepSeek Reasoner</option> */ }
+								{ /* <option value="gpt-5.3-codex">GPT-5.3 Codex</option> */ }
 							</select>
 						</div>
 

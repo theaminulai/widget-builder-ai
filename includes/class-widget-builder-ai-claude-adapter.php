@@ -63,37 +63,61 @@ class Widget_Builder_AI_Claude_Adapter {
 	 * @param string $model   The Claude model to use.
 	 * @return array|WP_Error The generated spec or an error.
 	 */
-	public function generate_spec( $message, $context = array(), $model = 'claude-3-5-sonnet-latest' ) {
+	public function generate_spec( $message, $context = array(), $model = 'claude-sonnet-4-6' ) {
 		if ( ! $this->is_configured() ) {
 			return new WP_Error( 'claude_not_configured', __( 'Claude API key is not configured.', 'widget-builder-ai' ) );
 		}
 
+		$model_lower   = strtolower( (string) $model );
 		$system_prompt = $this->build_system_prompt();
 		$user_prompt   = $this->build_user_prompt( $message, $context );
+
+		$body = array(
+			'model'      => (string) $model,
+			'max_tokens' => 16000,
+			'temperature' => 1,
+			'system'     => $system_prompt,
+			'messages'   => array(
+				array(
+					'role'    => 'user',
+					'content' => array(
+						array(
+							'type' => 'text',
+							'text' => $user_prompt,
+						),
+					),
+				),
+			),
+		);
+
+		// Enable extended thinking for Opus and Sonnet 4+ models.
+		if ( false !== strpos( $model_lower, 'opus' ) ) {
+			$body['thinking'] = array(
+				'type'          => 'adaptive',
+				'budget_tokens' => 10000,
+				'output_config' => array( 'effort' => 'medium' ),
+			);
+			// thinking requires max_tokens > budget_tokens and no temperature.
+			$body['max_tokens'] = 20000;
+		} elseif ( false !== strpos( $model_lower, 'sonnet' ) ) {
+			$body['thinking'] = array(
+				'type'          => 'enabled',
+				'budget_tokens' => 10000,
+			);
+			// thinking requires max_tokens > budget_tokens and no temperature.
+			$body['max_tokens'] = 20000;
+		}
 
 		$response = wp_remote_post(
 			$this->endpoint,
 			array(
-				'timeout' => 45,
+				'timeout' => 240,
 				'headers' => array(
-					'Content-Type'       => 'application/json',
-					'x-api-key'          => $this->api_key,
-					'anthropic-version'  => $this->api_version,
+					'Content-Type'      => 'application/json',
+					'x-api-key'         => $this->api_key,
+					'anthropic-version' => $this->api_version,
 				),
-				'body'    => wp_json_encode(
-					array(
-						'model'       => (string) $model,
-						'max_tokens'  => 2000,
-						'temperature' => 0.2,
-						'system'      => $system_prompt,
-						'messages'    => array(
-							array(
-								'role'    => 'user',
-								'content' => $user_prompt,
-							),
-						),
-					),
-				),
+				'body' => wp_json_encode( $body ),
 			)
 		);
 
@@ -101,18 +125,22 @@ class Widget_Builder_AI_Claude_Adapter {
 			return $response;
 		}
 
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
+		$code         = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+		$data         = json_decode( $response_body, true );
 
 		if ( $code < 200 || $code >= 300 ) {
-			return new WP_Error( 'claude_request_failed', ! empty( $body ) ? $body : __( 'Claude request failed.', 'widget-builder-ai' ) );
+			return new WP_Error(
+				'claude_request_failed',
+				! empty( $response_body ) ? $response_body : __( 'Claude request failed.', 'widget-builder-ai' )
+			);
 		}
 
 		if ( ! is_array( $data ) ) {
 			return new WP_Error( 'claude_invalid_json', __( 'Claude response is not valid JSON.', 'widget-builder-ai' ) );
 		}
 
+		// Extract only text blocks — skip thinking blocks.
 		$content = '';
 		if ( isset( $data['content'] ) && is_array( $data['content'] ) ) {
 			foreach ( $data['content'] as $part ) {
@@ -123,13 +151,14 @@ class Widget_Builder_AI_Claude_Adapter {
 		}
 
 		$parsed = $this->extract_json( $content );
+
 		if ( is_array( $parsed ) ) {
 			$js = isset( $parsed['js'] ) ? trim( (string) $parsed['js'] ) : '';
 
 			return array(
 				'php'     => isset( $parsed['php'] ) ? (string) $parsed['php'] : '',
 				'css'     => isset( $parsed['css'] ) ? (string) $parsed['css'] : '',
-				'js'      => '' !== $js ? $js : '',
+				'js'      => $js,
 				'summary' => isset( $parsed['summary'] ) ? (string) $parsed['summary'] : '',
 			);
 		}
@@ -262,6 +291,7 @@ class Widget_Builder_AI_Claude_Adapter {
 
 			'## QUALITY RULES ' .
 			'Production-ready code only. No placeholders. No TODOs. Minimal useful comments. ' .
+			'CRITICAL: Your response must begin with { and end with }. No markdown fences. Raw JSON only. ' .
 			'Response schema: {"php":"...","css":"...","js":"","summary":"..."}';
 	}
 
@@ -272,37 +302,23 @@ class Widget_Builder_AI_Claude_Adapter {
 	 * @param array  $context Conversation and widget context.
 	 * @return string JSON payload.
 	 */
+
 	private function build_user_prompt( $message, $context ) {
-		$message = trim( (string) $message );
+		$widget_config = $context['widget_config'] ?? [];
+		$title      = sanitize_text_field( $widget_config['title'] ?? 'Custom Widget' );
+		$icon       = sanitize_text_field( $widget_config['icon'] ?? 'eicon-code' );
+		$categories = $widget_config['categories'] ?? ['basic'];
+		$slug       = sanitize_title( $title );
 
-		$widget_config = isset( $context['widget_config'] ) && is_array( $context['widget_config'] )
-			? $context['widget_config']
-			: array();
-
-		$title      = isset( $widget_config['title'] ) ? sanitize_text_field( (string) $widget_config['title'] ) : 'Custom Widget';
-		$icon       = isset( $widget_config['icon'] ) ? sanitize_text_field( (string) $widget_config['icon'] ) : 'eicon-code';
-		$categories = isset( $widget_config['categories'] ) && is_array( $widget_config['categories'] )
-			? $widget_config['categories']
-			: array( 'basic' );
-
-		$slug = sanitize_title( $title );
-
-		$payload = array(
-			'widget_title'      => $title,
-			'widget_slug'       => $slug,
-			'widget_icon'       => $icon,
-			'widget_categories' => $categories,
-			'purpose'           => '' !== $message ? $message : 'Build a useful custom Elementor widget.',
-			'_instructions'     => array(
-				'icon_is_fixed'       => 'You MUST use widget_icon exactly as provided in get_icon(). Do NOT change it or replace it with a different eicon.',
-				'categories_is_fixed' => 'You MUST use widget_categories exactly as provided in get_categories(). Do NOT change or add categories.',
-				'slug_usage'          => 'Use widget_slug as the return value of get_name() prefixed with wbai_ and for all CSS class names scoped under .wbai-{widget_slug}.',
-			),
+		return sprintf(
+			"Generate an Elementor widget with these exact settings:\n\nWidget title: %s\nWidget slug (for get_name): wbai_%s\nWidget icon (use exactly): %s\nWidget categories (use exactly): [%s]\n\nPurpose: %s\n\nReturn ONLY the raw JSON object.",
+			$title,
+			$slug,
+			$icon,
+			implode( ', ', array_map( 'sanitize_text_field', $categories ) ),
+			sanitize_textarea_field( $message )
 		);
-
-		return wp_json_encode( $payload );
 	}
-
 	/**
 	 * Extracts a JSON object from model output.
 	 *

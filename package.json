@@ -1,24 +1,24 @@
 {
-  "name": "widget-builder-ai",
-  "private": true,
-  "version": "0.0.1",
-  "type": "module",
-  "scripts": {
-     "build": "wp-scripts build",
-	 "format": "wp-scripts format ",
-	 "format:src": "wp-scripts format ./src",
-    	"start": "wp-scripts start"
-  },
+	"name": "widget-builder-ai",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"build": "wp-scripts build",
+		"format": "wp-scripts format ",
+		"format:src": "wp-scripts format ./src",
+		"start": "wp-scripts start"
+	},
 	"devDependencies": {
 		"@wordpress/scripts": "^31.8.0",
 		"webpack-remove-empty-scripts": "^1.1.1"
 	},
-  "dependencies": {
-   		"@emotion/react": "11.14.0",
-        "@emotion/styled": "11.14.1",
-        "@monaco-editor/react": "^4.7.0",
-        "clsx": "2.1.1",
-        "lucide-react": "1.7.0",
-        "motion": "12.38.0"
-  }
+	"dependencies": {
+		"@emotion/react": "11.14.0",
+		"@emotion/styled": "11.14.1",
+		"@monaco-editor/react": "^4.7.0",
+		"clsx": "2.1.1",
+		"lucide-react": "1.7.0",
+		"motion": "12.38.0"
+	}
 }

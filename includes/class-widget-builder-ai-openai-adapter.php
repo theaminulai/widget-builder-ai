@@ -60,33 +60,26 @@ class Widget_Builder_AI_OpenAI_Adapter {
 			return new WP_Error( 'missing_api_key', __( 'OpenAI API key is missing.', 'widget-builder-ai' ) );
 		}
 
-		$system_prompt = $this->build_system_prompt();
-		$user_prompt   = $this->build_user_prompt( $message, $context );
+		$body = array(
+			'model'      => $model,
+			'max_completion_tokens' => 8000,
+			'temperature'       => 1,
+			'top_p'             => 1,
+			'frequency_penalty' => 0,
+			'presence_penalty'  => 0,
+			'store'             => false,
+			'messages'   => $this->build_messages( $message, $context ),
+		);
 
 		$response = wp_remote_post(
 			$this->endpoint,
 			array(
-				'timeout' => 45,
+				'timeout' => 120,
 				'headers' => array(
 					'Authorization' => 'Bearer ' . $this->api_key,
 					'Content-Type'  => 'application/json',
 				),
-				'body'    => wp_json_encode(
-					array(
-						'model'       => $model,
-						'temperature' => 0.2,
-						'messages'    => array(
-							array(
-								'role'    => 'system',
-								'content' => $system_prompt,
-							),
-							array(
-								'role'    => 'user',
-								'content' => $user_prompt,
-							),
-						),
-					),
-				),
+				'body'    => wp_json_encode( $body ),
 			)
 		);
 
@@ -98,11 +91,16 @@ class Widget_Builder_AI_OpenAI_Adapter {
 		$body = wp_remote_retrieve_body( $response );
 
 		if ( $code < 200 || $code >= 300 ) {
-			return new WP_Error( 'openai_request_failed', ! empty( $body ) ? $body : __( 'OpenAI request failed.', 'widget-builder-ai' ) );
+			return new WP_Error(
+				'openai_request_failed',
+				! empty( $body ) ? $body : __( 'OpenAI request failed.', 'widget-builder-ai' )
+			);
 		}
 
 		$decoded = json_decode( $body, true );
-		$content = isset( $decoded['choices'][0]['message']['content'] ) ? (string) $decoded['choices'][0]['message']['content'] : '';
+		$content = isset( $decoded['choices'][0]['message']['content'] )
+			? (string) $decoded['choices'][0]['message']['content']
+			: '';
 
 		if ( '' === trim( $content ) ) {
 			return new WP_Error( 'empty_ai_response', __( 'OpenAI returned an empty response.', 'widget-builder-ai' ) );
@@ -119,8 +117,74 @@ class Widget_Builder_AI_OpenAI_Adapter {
 		return array(
 			'php'     => isset( $parsed['php'] ) ? (string) $parsed['php'] : '',
 			'css'     => isset( $parsed['css'] ) ? (string) $parsed['css'] : '',
-			'js'      => '' !== $js ? $js : '',
+			'js'      => $js,
 			'summary' => isset( $parsed['summary'] ) ? (string) $parsed['summary'] : '',
+		);
+	}
+
+	/**
+	 * Builds the full messages array following the curl structure:
+	 * system → user (config block) → user (natural language requirement).
+	 *
+	 * @param string $message User requirement text.
+	 * @param array  $context Conversation and widget context.
+	 * @return array Messages array for the API request.
+	 */
+	private function build_messages( $message, $context ) {
+		$message = trim( (string) $message );
+
+		$widget_config = isset( $context['widget_config'] ) && is_array( $context['widget_config'] )
+			? $context['widget_config']
+			: array();
+
+		$title      = isset( $widget_config['title'] ) ? sanitize_text_field( (string) $widget_config['title'] ) : 'Custom Widget';
+		$icon       = isset( $widget_config['icon'] ) ? sanitize_text_field( (string) $widget_config['icon'] ) : 'eicon-code';
+		$categories = isset( $widget_config['categories'] ) && is_array( $widget_config['categories'] )
+			? array_values( array_map( 'sanitize_text_field', $widget_config['categories'] ) )
+			: array( 'basic' );
+
+		$slug    = sanitize_title( $title );
+		$purpose = '' !== $message ? sanitize_textarea_field( $message ) : 'Build a useful custom Elementor widget.';
+
+		// Message 1 (user): widget identity config block — mirrors the curl example exactly.
+		$config_payload = array(
+			'widget_title'      => $title,
+			'widget_slug'       => $slug,
+			'widget_icon'       => $icon,
+			'widget_categories' => $categories,
+			'purpose'           => $purpose,
+			'_instructions'     => array(
+				'icon_is_fixed'       => 'You MUST use widget_icon exactly as provided in get_icon(). Do NOT change it or replace it with a different eicon.',
+				'categories_is_fixed' => 'You MUST use widget_categories exactly as provided in get_categories(). Do NOT change or add categories.',
+				'slug_usage'          => 'Use widget_slug as the return value of get_name() prefixed with wbai_ and for all CSS class names scoped under .wbai-{widget_slug}.',
+			),
+		);
+
+		$config_message = "Generate a complete Elementor widget based on the following configuration.\n\n" .
+			"Rules:\n" .
+			"- Follow all _instructions strictly\n" .
+			"- Use widget_slug with prefix wbai_\n" .
+			"- Do not change icon or categories\n" .
+			"- Generate PHP class + controls + render method\n\n" .
+			"Configuration:\n" .
+			wp_json_encode( $config_payload, JSON_PRETTY_PRINT );
+
+		// Message 2 (user): the natural language requirement — kept separate as in the curl example.
+		$requirement_message = $purpose;
+
+		return array(
+			array(
+				'role'    => 'system',
+				'content' => $this->build_system_prompt(),
+			),
+			array(
+				'role'    => 'user',
+				'content' => $config_message,
+			),
+			array(
+				'role'    => 'user',
+				'content' => $requirement_message,
+			),
 		);
 	}
 
@@ -164,7 +228,7 @@ class Widget_Builder_AI_OpenAI_Adapter {
 			'Do NOT use Plugin::instance()->frontend->print_generate_html(). ' .
 			'Escape all output: esc_html(), esc_attr(), esc_url(), wp_kses_post() as appropriate. Text Domain: widget-builder-ai. ' .
 			'Follow WordPress coding standards. Class name must be derived from the widget title. ' .
-			
+
 			'## CONDITIONAL DISPLAY RULES ' .
 			'Use the "condition" key to show or hide a control based on another control\'s value. ' .
 			'Simple exact match: "condition" => [ "control_name" => "value" ] ' .
@@ -176,47 +240,19 @@ class Widget_Builder_AI_OpenAI_Adapter {
 			'"relation" accepts "and" (default) or "or". ' .
 			'The "condition" key works on individual controls, control sections, and style sections. ' .
 			'ALWAYS use "condition" to hide dependent controls. Example: hide autoplay_delay unless autoplay === "yes". Hide style sections unless the related feature is enabled. ' .
-			'Never show controls that are irrelevant when a feature is disabled. @see https://github.com/elementor/elementor-developers-docs/blob/master/src/editor-controls/conditional-display.md' .
+			'Never show controls that are irrelevant when a feature is disabled. ' .
 
 			'## CONTROLS RULES ' .
 			'You MUST register both content controls (TAB_CONTENT) and style controls (TAB_STYLE) for every widget. ' .
 			'Content tab: use \Elementor\Controls_Manager::TAB_CONTENT. ' .
 			'Style tab: use \Elementor\Controls_Manager::TAB_STYLE. ' .
-			'Basic control use \Elementor\Controls_Manager ,  Group_Control use \Elementor\Group_Control_ , use \Elementor\Repeater .  ' .
 			'Always wrap controls in start_controls_section() / end_controls_section(). ' .
 			'Choose controls based on what makes sense for the widget purpose. Available controls: ' .
-
-
-			'TEXT – single-line text input. ' .
-			'TEXTAREA – multi-line text input. ' .
-			'NUMBER – numeric input with min/max/step. ' .
-			'SELECT – dropdown with options array (key => label). ' .
-			'CHOOSE – icon button group for alignment/options (options array with title+icon). ' .
-			'SWITCHER – yes/no toggle (returns "yes" or ""). ' .
-			'COLOR – color picker (use with selectors). ' .
-			'SLIDER – range slider with size_unit and range (use with selectors). ' .
-			'DIMENSIONS – top/right/bottom/left fields with unit (use with selectors). ' .
-			'URL – URL input with is_external and nofollow options. ' .
-			'MEDIA – image/file picker (returns array with url and id). ' .
-			'ICONS – icon picker (render with \Elementor\Icons_Manager::render_icon()). ' .
-			'CODE – code editor (set language: html/css/js/php). ' .
-			'REPEATER – repeatable group of controls. ' .
-			'HEADING – decorative section heading (UI only, no value). ' .
-			'DIVIDER – horizontal rule separator (UI only). ' .
-			'HIDDEN – hidden field with a fixed default value. ' .
-
+			'TEXT, TEXTAREA, NUMBER, SELECT, CHOOSE, SWITCHER, COLOR, SLIDER, DIMENSIONS, URL, MEDIA, ICONS, CODE, REPEATER, HEADING, DIVIDER, HIDDEN. ' .
 			'GROUP CONTROLS (use $this->add_group_control(Type::get_type(), [...])): ' .
-			'Group_Control_Typography::get_type() – font family, size, weight, style, line-height, letter-spacing (selector required). ' .
-			'Group_Control_Border::get_type() – border type, width, color (selector required). ' .
-			'Group_Control_Background::get_type() – classic/gradient/video background (selector required). ' .
-			'Group_Control_Box_Shadow::get_type() – box shadow (selector required). ' .
-			'Group_Control_Text_Shadow::get_type() – text shadow (selector required). ' .
-			'Group_Control_Image_Size::get_type() – image size with custom dimensions. ' .
-			'Group_Control_Css_Filter::get_type() – CSS filters like blur/brightness (selector required). ' .
-
-			'RESPONSIVE CONTROLS: use $this->add_responsive_control() for any layout/spacing control that should differ per breakpoint (typography, padding, margin, alignment). ' .
-
-			'SELECTORS: style controls must include a "selectors" key mapping {{WRAPPER}} CSS selectors to CSS properties. Example: "selectors" => ["{{WRAPPER}} .wbai-{slug}__title" => "color: {{VALUE}};"] ' .
+			'Group_Control_Typography, Group_Control_Border, Group_Control_Background, Group_Control_Box_Shadow, Group_Control_Text_Shadow, Group_Control_Image_Size, Group_Control_Css_Filter. ' .
+			'RESPONSIVE CONTROLS: use $this->add_responsive_control() for layout/spacing controls that differ per breakpoint. ' .
+			'SELECTORS: style controls must include a "selectors" key mapping {{WRAPPER}} CSS selectors to CSS properties. ' .
 
 			'## CSS RULES ' .
 			'The "css" value must be scoped under .wbai-{widget-slug}. ' .
@@ -224,70 +260,19 @@ class Widget_Builder_AI_OpenAI_Adapter {
 			'Return an empty string "" if no base CSS is needed. ' .
 
 			'## JS RULES ' .
-			'Return an empty string "" for "js" if the widget is static (text, image, headings, simple cards, or display-only UI). ' .
-			'Only provide JavaScript if the widget requires real frontend interactivity (e.g. slider, tabs, toggle, accordion, modal, counter, AJAX). ' .
-			'Do NOT generate JS for styling, layout, class toggling, or anything that CSS alone can handle. ' .
-			'When JavaScript IS required, you MUST follow this exact Elementor pattern: ' .
-			'elementorFrontend.hooks.addAction("frontend/element_ready/wbai{widget_name}.default", function($scope){ /* logic */ }); ' .
-			'JS STRUCTURE RULES: ' .
-			'- Do NOT wrap in IIFE, (function($){})(), or $(function(){}). Return only the raw hook call. ' .
-			'- Do NOT nest elementorFrontend.hooks.addAction inside another hook. ' .
-			'- Do NOT use $(document).ready(). ' .
-			'- Do NOT use global selectors like $(".class"). Always use $scope.find(). ' .
-			'- Do NOT attach duplicate event listeners. Ensure logic runs once per widget instance. ' .
-			'- Keep all logic scoped inside $scope. ' .
-			'SCOPE RULE: ' .
-			'- All selectors MUST be scoped under .wbai-{widget-slug}. ' .
-			'- Example: $scope.find(".wbai-{widget-slug} .item") ' .
-			'OUTPUT RULE: ' .
-			'- Return ONLY the raw elementorFrontend.hooks.addAction(...) call. No <script> tags, no IIFE, no wrappers, no explanations. ' .
+			'Return an empty string "" for "js" if the widget is static. ' .
+			'Only provide JavaScript if the widget requires real frontend interactivity (slider, tabs, accordion, modal, counter, AJAX). ' .
+			'When JavaScript IS required use this exact pattern: ' .
+			'elementorFrontend.hooks.addAction("frontend/element_ready/wbai_{widget_name}.default", function($scope){ /* logic using $scope.find() only */ }); ' .
+			'Return ONLY the raw hook call. No <script> tags, no IIFE, no wrappers. ' .
 
 			'## SUMMARY RULES ' .
-			'The "summary" value must be 2-3 sentences written for a site editor. ' .
-			'Describe: what the widget displays, what controls it exposes to the editor, and any notable frontend behaviour. ' .
-			'Example: "A code reference widget that displays formatted code snippets with syntax highlighting. The editor can set a title, paste code content, and choose the language from a dropdown. A copy-to-clipboard button is included, powered by a small JavaScript snippet." ' .
+			'The "summary" value must be 2-3 sentences written for a site editor describing what the widget displays, what controls it exposes, and any notable frontend behaviour. ' .
 
 			'## QUALITY RULES ' .
 			'Production-ready code only. No placeholders. No TODOs. Minimal useful comments. ' .
+			'CRITICAL: Your response must begin with { and end with }. No markdown fences. Raw JSON only. ' .
 			'Response schema: {"php":"...","css":"...","js":"","summary":"..."}';
-	}
-
-	/**
-	 * Builds the user prompt payload for OpenAI.
-	 *
-	 * @param string $message User request text.
-	 * @param array  $context Conversation and widget context.
-	 * @return string JSON payload.
-	 */
-	private function build_user_prompt( $message, $context ) {
-		$message = trim( (string) $message );
-
-		$widget_config = isset( $context['widget_config'] ) && is_array( $context['widget_config'] )
-			? $context['widget_config']
-			: array();
-
-		$title      = isset( $widget_config['title'] ) ? sanitize_text_field( (string) $widget_config['title'] ) : 'Custom Widget';
-		$icon       = isset( $widget_config['icon'] ) ? sanitize_text_field( (string) $widget_config['icon'] ) : 'eicon-code';
-		$categories = isset( $widget_config['categories'] ) && is_array( $widget_config['categories'] )
-			? $widget_config['categories']
-			: array( 'basic' );
-
-		$slug = sanitize_title( $title );
-
-		$payload = array(
-			'widget_title'      => $title,
-			'widget_slug'       => $slug,
-			'widget_icon'       => $icon,
-			'widget_categories' => $categories,
-			'purpose'           => '' !== $message ? $message : 'Build a useful custom Elementor widget.',
-			'_instructions'     => array(
-				'icon_is_fixed'       => 'You MUST use widget_icon exactly as provided in get_icon(). Do NOT change it or replace it with a different eicon.',
-				'categories_is_fixed' => 'You MUST use widget_categories exactly as provided in get_categories(). Do NOT change or add categories.',
-				'slug_usage'          => 'Use widget_slug as the return value of get_name() prefixed with wbai_ and for all CSS class names scoped under .wbai-{widget_slug}.',
-			),
-		);
-
-		return wp_json_encode( $payload );
 	}
 
 	/**
@@ -300,4 +285,3 @@ class Widget_Builder_AI_OpenAI_Adapter {
 		return Widget_Builder_AI_JSON_Repair::extract( $content );
 	}
 }
-

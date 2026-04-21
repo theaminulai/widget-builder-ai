@@ -54,11 +54,26 @@ class Widget_Builder_AI_Generator {
 	private $version_manager;
 
 	/**
+	 * Code normalizer instance.
+	 *
+	 * @var Widget_Builder_AI_Normalizer
+	 */
+	private $normalizer;
+	/**
+	 * File system instance.
+	 *
+	 * @var Widget_Builder_AI_Filesystem
+	 */
+	private $file_system;
+
+	/**
 	 * Initializes generator dependencies.
 	 */
 	public function __construct() {
 		$this->ai_handler      = new Widget_Builder_AI_Handler();
 		$this->version_manager = new Widget_Builder_AI_Version_Manager();
+		$this->normalizer      = new Widget_Builder_AI_Normalizer();
+		$this->file_system     = new Widget_Builder_AI_Filesystem();
 	}
 
 	/**
@@ -71,9 +86,11 @@ class Widget_Builder_AI_Generator {
 	 * @return array|WP_Error Result payload on success, or error on failure.
 	 */
 	public function generate( $message, $model = 'gpt-4.1-mini', $widget_id = 0, $widget_config = array() ) {
+		set_time_limit( 300 );
+
 		$widget_id     = absint( $widget_id );
 		$message       = (string) $message;
-		$widget_config = $this->normalize_widget_config( $widget_config );
+		$widget_config = $this->normalizer->normalize_widget_config( $widget_config );
 
 		if ( '' === trim( $message ) ) {
 			return new WP_Error( 'empty_message', __( 'Message is required.', 'widget-builder-ai' ) );
@@ -99,7 +116,7 @@ class Widget_Builder_AI_Generator {
 			return $spec;
 		}
 
-		$resolved_widget_config = $this->normalize_widget_config(
+		$resolved_widget_config = $this->normalizer->normalize_widget_config(
 			$widget_config,
 			$spec['title'],
 			$spec['icon'],
@@ -115,14 +132,14 @@ class Widget_Builder_AI_Generator {
 
 		// Use Gemini's full PHP class directly — do NOT rebuild from markup.
 		$files = array(
-			'widget.php' => $this->normalize_php( $spec['php'] ),
-			'style.css'  => $this->normalize_css_unminified( $spec['css'] ),
-			'script.js'  => $this->normalize_js_unminified( $spec['js'], $this->build_widget_name_from_title( $resolved_widget_config['title'] ) ),
+			'widget.php' => $this->normalizer->normalize_php( $spec['php'] ),
+			'style.css'  => $this->normalizer->normalize_css_unminified( $spec['css'] ),
+			'script.js'  => $this->normalizer->normalize_js_unminified( $spec['js'], $this->normalizer->build_widget_name_from_title( $resolved_widget_config['title'] ) ),
 		);
-		$files = $this->filter_optional_files( $files );
+		$files = $this->normalizer->filter_optional_files( $files );
 
 		update_post_meta( $widget_id, self::META_FILES, wp_slash( $files ) );
-		$storage = $this->persist_widget_files( $widget_id, $files );
+		$storage = $this->file_system->persist_widget_files( $widget_id, $files );
 
 		$this->add_message_to_history(
 			$widget_id,
@@ -198,9 +215,9 @@ class Widget_Builder_AI_Generator {
 			'style.css'  => $this->extract_file_content_by_type( $files, 'css' ),
 			'script.js'  => $this->extract_file_content_by_type( $files, 'js' ),
 		);
-		$normalized = $this->filter_optional_files( $normalized );
+		$normalized = $this->normalizer->filter_optional_files( $normalized );
 		update_post_meta( $widget_id, self::META_FILES, wp_slash( $normalized ) );
-		$storage = $this->persist_widget_files( $widget_id, $normalized );
+		$storage = $this->file_system->persist_widget_files( $widget_id, $normalized );
 		$post    = get_post( $widget_id );
 
 		$existing_widget_config = get_post_meta( $widget_id, self::META_WIDGET_CONFIG, true );
@@ -209,7 +226,7 @@ class Widget_Builder_AI_Generator {
 			? array_merge( $existing_widget_config, $widget_config )
 			: $existing_widget_config;
 			
-		$resolved_widget_config = $this->normalize_widget_config(
+		$resolved_widget_config = $this->normalizer->normalize_widget_config(
 			$merged_widget_config,
 			$post ? $post->post_title : $widget_title,
 			'eicon-code',
@@ -331,81 +348,6 @@ class Widget_Builder_AI_Generator {
 	}
 
 	/**
-	 * Deletes persisted widget files and storage metadata.
-	 *
-	 * @param int $widget_id Widget ID.
-	 * @return bool True on success, false on failure.
-	 */
-	public function delete_widget_files( $widget_id ) {
-		$widget_id = absint( $widget_id );
-
-		if ( $widget_id <= 0 ) {
-			return false;
-		}
-
-		$storage   = get_post_meta( $widget_id, self::META_FILE_STORAGE, true );
-		$directory = '';
-
-		// ✅ Prefer stored directory
-		if ( is_array( $storage ) && ! empty( $storage['directory'] ) ) {
-			$directory = wp_normalize_path( (string) $storage['directory'] );
-		}
-
-		// ⚠️ Fallback (only if missing)
-		if ( empty( $directory ) ) {
-			$uploads = wp_upload_dir();
-
-			if ( ! empty( $uploads['error'] ) ) {
-				return false;
-			}
-
-			$directory = trailingslashit( $uploads['basedir'] ) . 'widget-builder-ai/widgets/' . $this->get_widget_slug( $widget_id ) . '-' . $widget_id;
-			$directory = wp_normalize_path( $directory );
-		}
-
-		$uploads = wp_upload_dir();
-		$base    = wp_normalize_path( $uploads['basedir'] );
-
-		if ( strpos( $directory, $base ) !== 0 ) {
-			return false;
-		}
-
-		$deleted = $this->delete_directory_recursively( $directory );
-
-		if ( $deleted ) {
-			delete_post_meta( $widget_id, self::META_FILE_STORAGE );
-			delete_post_meta( $widget_id, self::META_FILES );
-		}
-
-		return $deleted;
-	}
-
-	/**
-	 * Normalizes generated PHP source.
-	 *
-	 * @param string $php Raw PHP source.
-	 * @return string Normalized PHP source.
-	 */
-	private function normalize_php( $php ) {
-		$php = trim( (string) $php );
-		if ( '' === $php ) {
-			return '';
-		}
-
-		if ( 0 !== strpos( $php, '<?php' ) ) {
-			$php = "<?php\n" . $php;
-		}
-
-		// Check for single backslash namespace (post json_decode) OR double backslash.
-		if ( false === strpos( $php, 'namespace WBAI\Widgets' ) &&
-			false === strpos( $php, 'namespace WBAI\\Widgets' ) ) {
-			$php = preg_replace( '/^<\?php\s*/i', "<?php\nnamespace WBAI\\Widgets;\n\n", $php, 1 );
-		}
-
-		return $php . "\n";
-	}
-
-	/**
 	 * Inserts or updates the widget post.
 	 *
 	 * @param int    $widget_id Existing widget ID.
@@ -442,118 +384,6 @@ class Widget_Builder_AI_Generator {
 			return '';
 		}
 		return admin_url( 'post.php?post=' . $widget_id . '&action=elementor' );
-	}
-
-	/**
-	 * Writes widget files into uploads storage and stores metadata.
-	 *
-	 * @param int   $widget_id Widget ID.
-	 * @param array $files     Canonical file map.
-	 * @return array Storage payload, or empty array on failure.
-	 */
-	private function persist_widget_files( $widget_id, $files ) {
-		$widget_id = absint( $widget_id );
-		if ( $widget_id <= 0 ) {
-			return array();
-		}
-
-		$uploads = wp_upload_dir();
-		if ( ! empty( $uploads['error'] ) ) {
-			return array();
-		}
-
-		$slug     = $this->get_widget_slug( $widget_id );
-		$folder   = $slug . '-' . $widget_id;
-		$base_dir = trailingslashit( $uploads['basedir'] ) . 'widget-builder-ai/widgets/' . $folder;
-		$base_url = trailingslashit( $uploads['baseurl'] ) . 'widget-builder-ai/widgets/' . $folder;
-
-		$file_names = array(
-			'widget.php' => $slug . '-' . $widget_id . '.widget.php',
-			'style.css'  => $slug . '-' . $widget_id . '.style.css',
-			'script.js'  => $slug . '-' . $widget_id . '.script.js',
-		);
-
-		if ( ! wp_mkdir_p( $base_dir ) ) {
-			return array();
-		}
-
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		WP_Filesystem();
-		global $wp_filesystem;
-
-		if ( ! $wp_filesystem ) {
-			return array();
-		}
-
-		foreach ( $file_names as $virtual_name => $real_name ) {
-			$target_path = trailingslashit( $base_dir ) . $real_name;
-
-			if ( 'widget.php' !== $virtual_name && ! $this->has_meaningful_content( isset( $files[ $virtual_name ] ) ? $files[ $virtual_name ] : '' ) ) {
-				if ( $wp_filesystem->exists( $target_path ) ) {
-					$wp_filesystem->delete( $target_path );
-				}
-				continue;
-			}
-
-			$content = isset( $files[ $virtual_name ] ) ? (string) $files[ $virtual_name ] : '';
-			$wp_filesystem->put_contents( $target_path, $content );
-		}
-
-		$storage_files = array(
-			'widget.php' => trailingslashit( $base_url ) . $file_names['widget.php'],
-		);
-
-		if ( isset( $files['style.css'] ) && $this->has_meaningful_content( $files['style.css'] ) ) {
-			$storage_files['style.css'] = trailingslashit( $base_url ) . $file_names['style.css'];
-		}
-
-		if ( isset( $files['script.js'] ) && $this->has_meaningful_content( $files['script.js'] ) ) {
-			$storage_files['script.js'] = trailingslashit( $base_url ) . $file_names['script.js'];
-		}
-
-		$storage = array(
-			'directory' => $base_dir,
-			'url'       => $base_url,
-			'files'     => $storage_files,
-		);
-
-		update_post_meta( $widget_id, self::META_FILE_STORAGE, $storage );
-
-		return $storage;
-	}
-
-	/**
-	 * Deletes a directory recursively.
-	 *
-	 * @param string $directory Absolute directory path.
-	 * @return bool True when deleted successfully, otherwise false.
-	 */
-	private function delete_directory_recursively( $directory ) {
-		$directory = wp_normalize_path( trailingslashit( (string) $directory ) );
-
-		if ( empty( $directory ) || ! file_exists( $directory ) ) {
-			return false;
-		}
-
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-
-		// Initialize filesystem without asking for credentials (safe for uploads dir)
-		if ( ! WP_Filesystem() ) {
-			return false;
-		}
-
-		global $wp_filesystem;
-
-		if ( ! $wp_filesystem ) {
-			return false;
-		}
-
-		// Use WP filesystem recursive delete
-		if ( method_exists( $wp_filesystem, 'delete' ) ) {
-			return $wp_filesystem->delete( $directory, true );
-		}
-
-		return false;
 	}
 
 	/**
@@ -611,220 +441,18 @@ class Widget_Builder_AI_Generator {
 			if ( ! is_string( $name ) ) {
 				continue;
 			}
-			if ( 'php' === $type && $this->ends_with( $name, '.php' ) ) {
+			if ( 'php' === $type && $this->normalizer->ends_with( $name, '.php' ) ) {
 				return (string) $content;
 			}
-			if ( 'css' === $type && $this->ends_with( $name, '.css' ) ) {
+			if ( 'css' === $type && $this->normalizer->ends_with( $name, '.css' ) ) {
 				return (string) $content;
 			}
-			if ( 'js' === $type && $this->ends_with( $name, '.js' ) ) {
+			if ( 'js' === $type && $this->normalizer->ends_with( $name, '.js' ) ) {
 				return (string) $content;
 			}
 		}
 
 		return '';
-	}
-
-	/**
-	 * Builds a normalized widget slug name from title.
-	 *
-	 * @param string $title Widget title.
-	 * @return string Sanitized underscore slug.
-	 */
-	private function build_widget_name_from_title( $title ) {
-		$slug = sanitize_title( (string) $title );
-		$slug = str_replace( '-', '_', $slug );
-		return '' !== $slug ? $slug : 'widget_builder_ai';
-	}
-
-	/**
-	 * Formats CSS into readable unminified output.
-	 *
-	 * @param string $css Raw CSS source.
-	 * @return string Normalized CSS source.
-	 */
-	private function normalize_css_unminified( $css ) {
-		$css = trim( (string) $css );
-		if ( '' === $css ) {
-			return '';
-		}
-
-		$css = preg_replace( '/\}\s*/', "}\n\n", $css );
-		$css = preg_replace( '/\{\s*/', " {\n\t", $css );
-		$css = preg_replace( '/;\s*/', ";\n\t", $css );
-		$css = preg_replace( '/\n\t\}/', "\n}", $css );
-
-		return trim( $css ) . "\n";
-	}
-
-	/**
-	 * Formats JavaScript into Elementor-ready output.
-	 *
-	 * Preserves existing IIFE + init-hook wrappers when already present,
-	 * otherwise wraps handler code with the required Elementor hook bootstrap.
-	 *
-	 * @param string $js          Raw JavaScript source.
-	 * @param string $widget_name Widget name used for Elementor hook namespace.
-	 * @return string Normalized JavaScript source.
-	 */
-	private function normalize_js_unminified( $js, $widget_name = 'widget_builder_ai' ) {
-		$js = trim( (string) $js );
-		if ( '' === $js ) {
-			return '';
-		}
-
-		$widget_name = sanitize_key( str_replace( '-', '_', (string) $widget_name ) );
-		if ( '' === $widget_name ) {
-			$widget_name = 'widget_builder_ai';
-		}
-
-		$has_iife_wrapper = false !== strpos( $js, '(function' ) || false !== strpos( $js, '( function' );
-		$has_init_hook    = false !== strpos( $js, 'elementor/frontend/init' );
-
-		// Keep already well-structured IIFE + init hook code untouched.
-		if ( $has_iife_wrapper && $has_init_hook ) {
-			return trim( $js ) . "\n";
-		}
-
-		$handler_body = $js;
-
-		// If AI returned a raw addAction wrapper, unwrap only the callback body.
-		if ( preg_match( '/elementorFrontend\.hooks\.addAction\s*\(\s*["\'][^"\']+["\']\s*,\s*function\s*\(\s*\$scope\s*\)\s*\{([\s\S]*?)\}\s*\)\s*;?/m', $js, $matches ) ) {
-			$handler_body = trim( (string) $matches[1] );
-		}
-
-		$hook_widget_name = 0 === strpos( $widget_name, 'wbai_' ) ? $widget_name : 'wbai_' . $widget_name;
-
-		$wrapped_js = "(function ($, elementor) {\n" .
-			"\t'use strict';\n\n" .
-			"\tvar WidgetHandler = function (\$scope) {\n";
-
-		foreach ( explode( "\n", $handler_body ) as $line ) {
-			$wrapped_js .= "\t\t" . rtrim( $line ) . "\n";
-		}
-
-		$wrapped_js .= "\t};\n\n" .
-			"\t$(window).on('elementor/frontend/init', function () {\n" .
-			"\t\telementorFrontend.hooks.addAction(\n" .
-			"\t\t\t'frontend/element_ready/{$hook_widget_name}.default',\n" .
-			"\t\t\tWidgetHandler\n" .
-			"\t\t);\n" .
-			"\t});\n" .
-			"})(jQuery, window.elementorFrontend);";
-
-		return trim( $wrapped_js ) . "\n";
-	}
-
-	/**
-	 * Checks whether a string ends with another string.
-	 *
-	 * @param string $haystack Full input string.
-	 * @param string $needle   Ending string.
-	 * @return bool True when haystack ends with needle.
-	 */
-	private function ends_with( $haystack, $needle ) {
-		$haystack = (string) $haystack;
-		$needle   = (string) $needle;
-		$len      = strlen( $needle );
-		if ( 0 === $len ) {
-			return true;
-		}
-		return substr( $haystack, -$len ) === $needle;
-	}
-
-	/**
-	 * Removes optional assets when empty.
-	 *
-	 * @param array $files File payload.
-	 * @return array Filtered files.
-	 */
-	private function filter_optional_files( $files ) {
-		$files = is_array( $files ) ? $files : array();
-
-		if ( isset( $files['style.css'] ) && ! $this->has_meaningful_content( $files['style.css'] ) ) {
-			unset( $files['style.css'] );
-		}
-		if ( isset( $files['script.js'] ) && ! $this->has_meaningful_content( $files['script.js'] ) ) {
-			unset( $files['script.js'] );
-		}
-
-		return $files;
-	}
-
-	/**
-	 * Normalizes widget configuration with validated fallbacks.
-	 *
-	 * @param array  $widget_config     Raw widget configuration.
-	 * @param string $fallback_title    Fallback title.
-	 * @param string $fallback_icon     Fallback icon.
-	 * @param string $fallback_category Fallback category.
-	 * @return array Normalized configuration payload.
-	 */
-	private function normalize_widget_config( $widget_config, $fallback_title = '', $fallback_icon = 'eicon-code', $fallback_category = 'basic' ) {
-		$widget_config = is_array( $widget_config ) ? $widget_config : array();
-
-		$title = isset( $widget_config['title'] ) ? sanitize_text_field( (string) $widget_config['title'] ) : '';
-		if ( '' === $title ) {
-			$title = sanitize_text_field( (string) $fallback_title );
-		}
-		if ( '' === $title ) {
-			$title = 'Untitled Widget';
-		}
-
-		$icon = isset( $widget_config['icon'] ) ? sanitize_text_field( (string) $widget_config['icon'] ) : '';
-		if ( '' === $icon ) {
-			$icon = sanitize_text_field( (string) $fallback_icon );
-		}
-		if ( '' === $icon ) {
-			$icon = 'eicon-code';
-		}
-
-		$category = isset( $widget_config['category'] ) ? sanitize_key( (string) $widget_config['category'] ) : '';
-		if ( '' === $category ) {
-			$category = sanitize_key( (string) $fallback_category );
-		}
-		if ( '' === $category ) {
-			$category = 'basic';
-		}
-
-		$libraries = array();
-		if ( isset( $widget_config['libraries'] ) && is_array( $widget_config['libraries'] ) ) {
-			foreach ( $widget_config['libraries'] as $library ) {
-				if ( ! is_array( $library ) ) {
-					continue;
-				}
-				$url  = esc_url_raw( isset( $library['url'] ) ? (string) $library['url'] : '' );
-				$type = sanitize_key( isset( $library['type'] ) ? (string) $library['type'] : '' );
-				if ( '' === $url || ! in_array( $type, array( 'css', 'js' ), true ) ) {
-					continue;
-				}
-				$libraries[] = array(
-					'url'  => $url,
-					'type' => $type,
-				);
-			}
-		}
-
-		return array(
-			'title'           => $title,
-			'description'     => isset( $widget_config['description'] ) ? sanitize_textarea_field( (string) $widget_config['description'] ) : '',
-			'icon'            => $icon,
-			'category'        => $category,
-			'selectedLibrary' => isset( $widget_config['selectedLibrary'] ) ? sanitize_text_field( (string) $widget_config['selectedLibrary'] ) : '',
-			'libraries'       => $libraries,
-		);
-	}
-
-	/**
-	 * Gets a filesystem-safe slug for widget storage.
-	 *
-	 * @param int $widget_id Widget ID.
-	 * @return string Widget slug.
-	 */
-	private function get_widget_slug( $widget_id ) {
-		$title = get_the_title( $widget_id );
-		$slug  = sanitize_title( $title );
-		return '' !== $slug ? $slug : 'widget-builder-ai';
 	}
 
 	/**

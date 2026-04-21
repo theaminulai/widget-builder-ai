@@ -57,17 +57,17 @@ class Widget_Builder_AI_Handler {
 		$model             = (string) $model;
 		$selected_provider = $this->detect_provider_from_model( $model );
 
-		$providers = array( $selected_provider, 'openai', 'claude', 'gemini' );
-		$providers = array_values( array_unique( array_filter( $providers ) ) );
-
-		foreach ( $providers as $provider ) {
-			$result = $this->generate_from_provider( $provider, $message, $context, $model );
-			if ( ! is_wp_error( $result ) ) {
-				return $this->normalize_spec( $result, $message, $widget_config );
-			}
+		if ( '' === $selected_provider ) {
+			return new WP_Error( 'no_provider', __( 'Could not detect a provider for the given model.', 'widget-builder-ai' ) );
 		}
 
-		return new WP_Error( 'ai_generation_failed', __( 'All configured AI providers failed to generate a response. Please try again.', 'widget-builder-ai' ) );
+		$result = $this->generate_from_provider( $selected_provider, $message, $context, $model );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return $this->normalize_spec( $result, $message, $widget_config );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class Widget_Builder_AI_Handler {
 		}
 
 		if ( '' !== $model ) {
-			return 'openai';
+			return 'openai'; // gpt-4.1-mini, o1, o3, gpt-4o etc all land here
 		}
 
 		return '';
@@ -109,13 +109,15 @@ class Widget_Builder_AI_Handler {
 				if ( ! $this->claude_adapter->is_configured() ) {
 					return new WP_Error( 'claude_not_configured', __( 'Claude provider not configured.', 'widget-builder-ai' ) );
 				}
-				$claude_model = 0 === strpos( strtolower( (string) $model ), 'claude' ) ? $model : 'claude-3-5-sonnet-latest';
+
+				$claude_model = 0 === strpos( strtolower( (string) $model ), 'claude' ) ? $model : 'claude-sonnet-4-6';
 				return $this->claude_adapter->generate_spec( $message, $context, $claude_model );
 
 			case 'gemini':
 				if ( ! $this->gemini_adapter->is_configured() ) {
 					return new WP_Error( 'gemini_not_configured', __( 'Gemini provider not configured.', 'widget-builder-ai' ) );
 				}
+
 				$gemini_model = 0 === strpos( strtolower( (string) $model ), 'gemini' ) ? $model : 'gemini-2.5-flash';
 				return $this->gemini_adapter->generate_spec( $message, $context, $gemini_model );
 

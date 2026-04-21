@@ -96,11 +96,11 @@ class Widget_Builder_AI_CPT {
 			return;
 		}
 
-		if ( ! class_exists( 'Widget_Builder_AI_Generator' ) ) {
+		if ( ! class_exists( 'Widget_Builder_AI_Filesystem' ) ) {
 			return;
 		}
 
-		$generator = new Widget_Builder_AI_Generator();
-		$generator->delete_widget_files( $post_id );
+		$filesystem = new Widget_Builder_AI_Filesystem();
+		$filesystem->delete_widget_files( $post_id );
 	}
 }

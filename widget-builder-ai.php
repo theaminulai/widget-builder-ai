@@ -47,6 +47,8 @@ function widget_builder_ai_init_plugin() {
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-generator.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-register-widgets.php';
 	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-api.php';
+	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-filesystem.php';
+	require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-normalizer.php';
 	
 	new Widget_Builder_AI_CPT();
 	new Widget_Builder_AI_Assets();
