@@ -1,71 +1,73 @@
 .app-container {
-  width: 100%;
-  position: relative;
+	width: 100%;
+	position: relative;
 }
 
 .wrap.widget-builder-ai-open {
-  position: relative;
-  min-height: 95vh;
+	position: relative;
+	min-height: 95vh;
 }
 
-.wrap.widget-builder-ai-open > *:not(#widget-builder-ai-root) {
-  display: none;
+.wrap.widget-builder-ai-open>*:not(#widget-builder-ai-root) {
+	display: none;
 }
 
 .wrap.widget-builder-ai-open #widget-builder-ai-root {
-  position: absolute;
-  inset: 0;
-  z-index: 1000;
+	position: absolute;
+	inset: 0;
+	z-index: 1000;
 }
 
 * {
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+	margin: 0;
+	padding: 0;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+		'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+		sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
+
 #adminmenuback {
-    z-index: 9990;
+	z-index: 9990;
 }
+
 button {
-  font-family: inherit;
+	font-family: inherit;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+	width: 8px;
+	height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+	background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+	background: #888;
+	border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+	background: #555;
 }
 
 @media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track {
-    background: #1f2937;
-  }
+	::-webkit-scrollbar-track {
+		background: #1f2937;
+	}
 
-  ::-webkit-scrollbar-thumb {
-    background: #4b5563;
-  }
+	::-webkit-scrollbar-thumb {
+		background: #4b5563;
+	}
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: #6b7280;
-  }
+	::-webkit-scrollbar-thumb:hover {
+		background: #6b7280;
+	}
 }

@@ -1,72 +1,72 @@
 .code-preview-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: #ffffff;
-  overflow: hidden;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	background: #ffffff;
+	overflow: hidden;
 }
 
 .code-preview-content {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding: 0 5px 5px 0;
+	flex: 1;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	padding: 0 5px 5px 0;
 }
 
 .builder-header {
-  height: 64px;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  background: #ffffff;
-  flex-shrink: 0;
+	height: 64px;
+	border-bottom: 1px solid #e5e7eb;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 24px;
+	background: #ffffff;
+	flex-shrink: 0;
 }
 
 .header-title {
-  h1 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #000000;
-    margin: 0;
-  }
+	h1 {
+		font-size: 20px;
+		font-weight: 600;
+		color: #000000;
+		margin: 0;
+	}
 }
 
 .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
 }
 
 .header-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: transparent;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #000000;
-  cursor: pointer;
-  transition: all 0.2s;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 20px;
+	background: transparent;
+	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #000000;
+	cursor: pointer;
+	transition: all 0.2s;
 
-  &:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
-  }
+	&:hover {
+		background: #f3f4f6;
+		border-color: #9ca3af;
+	}
 
-  &.save-button {
-    background: #3858e9;
-    color: #ffffff;
-    border-color: #3858e9;
+	&.save-button {
+		background: #3858e9;
+		color: #ffffff;
+		border-color: #3858e9;
 
-    &:hover {
-      background: #7b90ff;
-      border-color: #7b90ff;
-    }
-  }
+		&:hover {
+			background: #7b90ff;
+			border-color: #7b90ff;
+		}
+	}
 }
