@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Widget_Builder_AI_Normalizer {
+class Widget_Builder_AI_Code_Validator {
 
 	/**
 	 * Normalizes generated PHP source.

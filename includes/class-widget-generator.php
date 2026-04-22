@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Widget_Builder_AI_Generator {
+class Widget_Builder_AI_Widget_Generator {
 	/**
 	 * Post meta key for chat history.
 	 *
@@ -56,7 +56,7 @@ class Widget_Builder_AI_Generator {
 	/**
 	 * Code normalizer instance.
 	 *
-	 * @var Widget_Builder_AI_Normalizer
+	 * @var Widget_Builder_AI_Code_Validator
 	 */
 	private $normalizer;
 	/**
@@ -72,7 +72,7 @@ class Widget_Builder_AI_Generator {
 	public function __construct() {
 		$this->ai_handler      = new Widget_Builder_AI_Handler();
 		$this->version_manager = new Widget_Builder_AI_Version_Manager();
-		$this->normalizer      = new Widget_Builder_AI_Normalizer();
+		$this->normalizer      = new Widget_Builder_AI_Code_Validator();
 		$this->file_system     = new Widget_Builder_AI_Filesystem();
 	}
 

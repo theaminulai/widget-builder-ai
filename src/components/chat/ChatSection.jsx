@@ -357,7 +357,7 @@ const ChatSection = () => {
 									Claude 4.6 Sonnet{ ' ' }
 								</option>
 								<option value="gpt-4o">GPT-4o</option>
-								{ /* <option value="gpt-5.3-codex">GPT-5.3 Codex</option> */ }
+								<option value="gpt-5-codex">GPT-5.3 Codex</option> 
 							</select>
 						</div>
 

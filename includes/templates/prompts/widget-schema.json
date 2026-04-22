@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "required": ["php", "css", "js", "summary"],
+  "properties": {
+    "php":     { "type": "string", "description": "Complete Elementor widget PHP class" },
+    "css":     { "type": "string", "description": "Scoped CSS under .wbai-{slug}" },
+    "js":      { "type": "string", "description": "Raw elementorFrontend hook call, or empty string" },
+    "summary": { "type": "string", "description": "2-3 sentence editor-facing description" }
+  }
+}

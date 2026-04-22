@@ -1,0 +1,7 @@
+"Generate a complete Elementor widget based on the following configuration.\n\n" .
+			"Rules:\n" .
+			"- Follow all _instructions strictly\n" .
+			"- Use widget_slug with prefix wbai_\n" .
+			"- Do not change icon or categories\n" .
+			"- Generate PHP class + controls + render method\n\n" .
+			"Configuration:\n" .

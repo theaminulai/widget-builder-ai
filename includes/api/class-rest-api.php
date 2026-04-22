@@ -14,12 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class Widget_Builder_AI_API {
+class Widget_Builder_AI_REST_API {
 
 	/**
 	 * Data generator instance.
 	 *
-	 * @var Widget_Builder_AI_Generator
+	 * @var Widget_Builder_AI_Widget_Generator
 	 */
 	private $generator;
 
@@ -27,7 +27,7 @@ class Widget_Builder_AI_API {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->generator = new Widget_Builder_AI_Generator();
+		$this->generator = new Widget_Builder_AI_Widget_Generator();
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 

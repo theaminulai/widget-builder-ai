@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Handles the registration of the custom post type and admin menu.
+ * Handles the registration of the custom post type
  *
  * @since 1.0.0
  */
@@ -21,7 +21,6 @@ class Widget_Builder_AI_CPT {
 	 */
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_cpt' ) );
-		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 		add_action( 'delete_post', array( $this, 'delete_widget_assets' ), 10, 1 );
 		add_action( 'wp_trash_post', array( $this, 'delete_widget_assets' ), 10, 1 );
 	}
@@ -62,26 +61,6 @@ class Widget_Builder_AI_CPT {
 		);
 
 		register_post_type( 'widget_builder_ai', $args );
-	}
-
-	/**
-	 * Registers the admin submenu page.
-	 *
-	 * @return void
-	 */
-	public function register_menu() {
-		if ( ! post_type_exists( 'widget_builder_ai' ) ) {
-			return;
-		}
-
-		add_submenu_page(
-			// 'elementskit',
-			'eael-settings',
-			__( 'Widget Builder AI', 'widget-builder-ai' ),
-			__( 'Widget Builder AI', 'widget-builder-ai' ),
-			'manage_options',
-			'edit.php?post_type=widget_builder_ai'
-		);
 	}
 
 	/**

@@ -108,6 +108,7 @@ widget-builder-ai/
 │   ├── components/
 │   ├── index.jsx
 │   └── main.jsx
+├── docs/
 ├── readme.txt
 └── README.md
 ```

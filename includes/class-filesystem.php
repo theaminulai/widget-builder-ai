@@ -24,7 +24,7 @@ class Widget_Builder_AI_Filesystem {
 			return false;
 		}
 
-		$storage   = get_post_meta( $widget_id, Widget_Builder_AI_Generator::META_FILE_STORAGE, true );
+		$storage   = get_post_meta( $widget_id, Widget_Builder_AI_Widget_Generator::META_FILE_STORAGE, true );
 		$directory = '';
 
 		if ( is_array( $storage ) && ! empty( $storage['directory'] ) ) {
@@ -52,8 +52,8 @@ class Widget_Builder_AI_Filesystem {
 		$deleted = $this->delete_directory_recursively( $directory );
 
 		if ( $deleted ) {
-			delete_post_meta( $widget_id, Widget_Builder_AI_Generator::META_FILE_STORAGE );
-			delete_post_meta( $widget_id, Widget_Builder_AI_Generator::META_FILES );
+			delete_post_meta( $widget_id, Widget_Builder_AI_Widget_Generator::META_FILE_STORAGE );
+			delete_post_meta( $widget_id, Widget_Builder_AI_Widget_Generator::META_FILES );
 		}
 
 		return $deleted;
@@ -176,7 +176,7 @@ class Widget_Builder_AI_Filesystem {
 			'files'     => $storage_files,
 		);
 
-		update_post_meta( $widget_id, Widget_Builder_AI_Generator::META_FILE_STORAGE, $storage );
+		update_post_meta( $widget_id, Widget_Builder_AI_Widget_Generator::META_FILE_STORAGE, $storage );
 
 		return $storage;
 	}

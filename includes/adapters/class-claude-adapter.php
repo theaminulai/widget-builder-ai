@@ -1,6 +1,6 @@
 <?php
 /**
- * Gemini adapter for Widget Builder AI.
+ * Claude adapter for Widget Builder AI.
  *
  * @package WidgetBuilderAI
  */
@@ -10,66 +10,114 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Adapter for communicating with the Google Gemini API.
+ * Adapter for communicating with the Anthropic Claude API.
  *
  * @since 1.0.0
  */
-class Widget_Builder_AI_Gemini_Adapter {
+class Widget_Builder_AI_Claude_Adapter {
 
-	private $api_key;
+	/**
+	 * API endpoint.
+	 *
+	 * @var string
+	 */
 	private $endpoint;
 
-	public function __construct() {
-		$this->api_key  = AI_GEMINI_API_KEY;
-		$this->endpoint = AI_GEMINI_API_ENDPOINT;
-	}
+	/**
+	 * API key.
+	 *
+	 * @var string
+	 */
+	private $api_key;
 
-	public function is_configured() {
-		return ! empty( $this->api_key ) && ! empty( $this->endpoint );
+	/**
+	 * Anthropic version header value.
+	 *
+	 * @var string
+	 */
+	private $api_version;
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		$this->endpoint = AI_CLAUDE_API_ENDPOINT;
+		$this->api_key = AI_CLAUDE_API_KEY;
+		$this->api_version = '2023-06-01';
 	}
 
 	/**
-	 * Generates a complete Elementor widget split into 3 parts: php, css, js.
+	 * Checks if the adapter is properly configured.
 	 *
-	 * @param string $message The user's purpose/explanation.
-	 * @param array  $context Widget config (title, name, categories, icon, etc.).
-	 * @param string $model   Gemini model to use.
-	 * @return array|WP_Error {
-	 *     @type string $php Full Elementor widget PHP class.
-	 *     @type string $css Scoped CSS string (empty if not needed).
-	 *     @type string $js  Frontend JS string (empty if not needed).
-	 * }
+	 * @return bool True if configured, false otherwise.
 	 */
-	public function generate_spec( $message, $context = array(), $model = 'gemini-2.5-flash' ) {
+	public function is_configured() {
+		return ! empty( $this->endpoint ) && ! empty( $this->api_key );
+	}
+
+	/**
+	 * Generates a widget specification using Claude.
+	 *
+	 * @param string $message The user message/prompt.
+	 * @param array  $context The chat context.
+	 * @param string $model   The Claude model to use.
+	 * @return array|WP_Error The generated spec or an error.
+	 */
+	public function generate_spec( $message, $context = array(), $model = 'claude-sonnet-4-6' ) {
 		if ( ! $this->is_configured() ) {
-			return new WP_Error( 'gemini_not_configured', __( 'Gemini API key is not configured.', 'widget-builder-ai' ) );
+			return new WP_Error( 'claude_not_configured', __( 'Claude API key is not configured.', 'widget-builder-ai' ) );
 		}
 
+		$model_lower   = strtolower( (string) $model );
 		$system_prompt = $this->build_system_prompt();
 		$user_prompt   = $this->build_user_prompt( $message, $context );
-		$url           = trailingslashit( $this->endpoint ) . rawurlencode( (string) $model ) . ':generateContent?key=' . rawurlencode( $this->api_key );
+
+		$body = array(
+			'model'      => (string) $model,
+			'max_tokens' => 16000,
+			'temperature' => 1,
+			'system'     => $system_prompt,
+			'messages'   => array(
+				array(
+					'role'    => 'user',
+					'content' => array(
+						array(
+							'type' => 'text',
+							'text' => $user_prompt,
+						),
+					),
+				),
+			),
+		);
+
+		// Enable extended thinking for Opus and Sonnet 4+ models.
+		if ( false !== strpos( $model_lower, 'opus' ) ) {
+			$body['thinking'] = array(
+				'type'          => 'adaptive',
+				'budget_tokens' => 10000,
+				'output_config' => array( 'effort' => 'medium' ),
+			);
+			// thinking requires max_tokens > budget_tokens and no temperature.
+			$body['max_tokens'] = 20000;
+		} elseif ( false !== strpos( $model_lower, 'sonnet' ) ) {
+			$body['thinking'] = array(
+				'type'          => 'enabled',
+				'budget_tokens' => 10000,
+			);
+			// thinking requires max_tokens > budget_tokens and no temperature.
+			$body['max_tokens'] = 20000;
+		}
 
 		$response = wp_remote_post(
-			$url,
+			$this->endpoint,
 			array(
-				'timeout' => 120,
-				'headers' => array( 'Content-Type' => 'application/json' ),
-				'body'    => wp_json_encode(
-					array(
-						'contents'         => array(
-							array(
-								'role'  => 'user',
-								'parts' => array(
-									array( 'text' => $system_prompt . "\n\n" . $user_prompt ),
-								),
-							),
-						),
-						'generationConfig' => array(
-							'temperature'      => 0.2,
-							'responseMimeType' => 'application/json',
-						),
-					)
+				'timeout' => 300,
+				'headers' => array(
+					'Content-Type'      => 'application/json',
+					'x-api-key'         => $this->api_key,
+					'anthropic-version' => $this->api_version,
 				),
+				'body' => wp_json_encode( $body ),
 			)
 		);
 
@@ -77,23 +125,26 @@ class Widget_Builder_AI_Gemini_Adapter {
 			return $response;
 		}
 
-		$code = wp_remote_retrieve_response_code( $response );
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-		
+		$code         = wp_remote_retrieve_response_code( $response );
+		$response_body = wp_remote_retrieve_body( $response );
+		$data         = json_decode( $response_body, true );
+
 		if ( $code < 200 || $code >= 300 ) {
-			return new WP_Error( 'gemini_request_failed', ! empty( $body ) ? $body : __( 'Gemini request failed.', 'widget-builder-ai' ) );
+			return new WP_Error(
+				'claude_request_failed',
+				! empty( $response_body ) ? $response_body : __( 'Claude request failed.', 'widget-builder-ai' )
+			);
 		}
 
 		if ( ! is_array( $data ) ) {
-			return new WP_Error( 'gemini_invalid_json', __( 'Gemini response is not valid JSON.', 'widget-builder-ai' ) );
+			return new WP_Error( 'claude_invalid_json', __( 'Claude response is not valid JSON.', 'widget-builder-ai' ) );
 		}
 
-		// Extract raw text content from Gemini response.
+		// Extract only text blocks — skip thinking blocks.
 		$content = '';
-		if ( isset( $data['candidates'][0]['content']['parts'] ) && is_array( $data['candidates'][0]['content']['parts'] ) ) {
-			foreach ( $data['candidates'][0]['content']['parts'] as $part ) {
-				if ( isset( $part['text'] ) ) {
+		if ( isset( $data['content'] ) && is_array( $data['content'] ) ) {
+			foreach ( $data['content'] as $part ) {
+				if ( is_array( $part ) && isset( $part['type'] ) && 'text' === $part['type'] && isset( $part['text'] ) ) {
 					$content .= (string) $part['text'];
 				}
 			}
@@ -101,26 +152,30 @@ class Widget_Builder_AI_Gemini_Adapter {
 
 		$parsed = $this->extract_json( $content );
 
+		if ( is_array( $parsed ) ) {
+			$js = isset( $parsed['js'] ) ? trim( (string) $parsed['js'] ) : '';
 
-		if ( ! is_array( $parsed ) ) {
-			return new WP_Error( 'gemini_parse_failed', __( 'Could not parse Gemini response into a valid widget spec.', 'widget-builder-ai' ) );
+			return array(
+				'php'     => isset( $parsed['php'] ) ? (string) $parsed['php'] : '',
+				'css'     => isset( $parsed['css'] ) ? (string) $parsed['css'] : '',
+				'js'      => $js,
+				'summary' => isset( $parsed['summary'] ) ? (string) $parsed['summary'] : '',
+			);
 		}
 
-		// Return only the 4 parts.
-		$js = isset( $parsed['js'] ) ? trim( (string) $parsed['js'] ) : '';
-		return array(
-			'php'     => isset( $parsed['php'] )     ? (string) $parsed['php']          : '',
-			'css'     => isset( $parsed['css'] )     ? (string) $parsed['css']          : '',
-			'js'      => '' !== $js ? $js            : '', // Empty string = no JS file should be created.
-			'summary' => isset( $parsed['summary'] ) ? (string) $parsed['summary']      : '',
-		);
+		return new WP_Error( 'invalid_claude_json', __( 'Claude did not return valid JSON.', 'widget-builder-ai' ) );
 	}
 
 	/**
-	 * Builds the system prompt.
+	 * Builds the system prompt sent to Claude.
+	 *
 	 * @return string Prompt text.
 	 */
 	private function build_system_prompt() {
+		$prompt_file = WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/templates/prompts/system-prompt.txt';
+		if ( file_exists( $prompt_file ) ) {
+			return trim( file_get_contents( $prompt_file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		}
 		return 'You are an expert WordPress and Elementor widget developer. ' .
 			'Return ONLY a JSON object with exactly four keys: "php", "css", "js", "summary". No markdown, no extra text. ' .
 
@@ -240,54 +295,43 @@ class Widget_Builder_AI_Gemini_Adapter {
 
 			'## QUALITY RULES ' .
 			'Production-ready code only. No placeholders. No TODOs. Minimal useful comments. ' .
+			'CRITICAL: Your response must begin with { and end with }. No markdown fences. Raw JSON only. ' .
 			'Response schema: {"php":"...","css":"...","js":"","summary":"..."}';
 	}
 
 	/**
-	 * Builds the user prompt from $message and $context.
+	 * Builds the user prompt payload for Claude.
 	 *
-	 * @param string $message User's purpose/explanation.
-	 * @param array  $context Widget config from the caller.
+	 * @param string $message User request text.
+	 * @param array  $context Conversation and widget context.
+	 * @return string JSON payload.
 	 */
+
 	private function build_user_prompt( $message, $context ) {
-		$message = trim( (string) $message );
+		$widget_config = $context['widget_config'] ?? [];
+		$title      = sanitize_text_field( $widget_config['title'] ?? 'Custom Widget' );
+		$icon       = sanitize_text_field( $widget_config['icon'] ?? 'eicon-code' );
+		$categories = $widget_config['categories'] ?? ['basic'];
+		$slug       = sanitize_title( $title );
 
-		$widget_config = isset( $context['widget_config'] ) && is_array( $context['widget_config'] )
-			? $context['widget_config']
-			: array();
-
-		$title      = isset( $widget_config['title'] )      ? sanitize_text_field( (string) $widget_config['title'] )      : 'Custom Widget';
-		$icon       = isset( $widget_config['icon'] )       ? sanitize_text_field( (string) $widget_config['icon'] )       : 'eicon-code';
-		$categories = isset( $widget_config['categories'] ) && is_array( $widget_config['categories'] )
-			? $widget_config['categories']
-			: array( 'basic' );
-
-		// Derive slug from title.
-		$slug = sanitize_title( $title );
-
-		$payload = array(
-			'widget_title'      => $title,
-			'widget_slug'       => $slug,
-			'widget_icon'       => $icon,
-			'widget_categories' => $categories,
-			'purpose'           => '' !== $message ? $message : 'Build a useful custom Elementor widget.',
-			'_instructions'     => array(
-				'icon_is_fixed'       => 'You MUST use widget_icon exactly as provided in get_icon(). Do NOT change it or replace it with a different eicon.',
-				'categories_is_fixed' => 'You MUST use widget_categories exactly as provided in get_categories(). Do NOT change or add categories.',
-				'slug_usage'          => 'Use widget_slug as the return value of get_name() prefixed with wbai_ and for all CSS class names scoped under .wbai-{widget_slug}.',
-			),
+		return sprintf(
+			"Generate an Elementor widget with these exact settings:\n\nWidget title: %s\nWidget slug (for get_name): wbai_%s\nWidget icon (use exactly): %s\nWidget categories (use exactly): [%s]\n\nPurpose: %s\n\nReturn ONLY the raw JSON object.",
+			$title,
+			$slug,
+			$icon,
+			implode( ', ', array_map( 'sanitize_text_field', $categories ) ),
+			sanitize_textarea_field( $message )
 		);
-
-		return wp_json_encode( $payload );
 	}
-
 	/**
-	 * Extracts a JSON object from Gemini output text.
+	 * Extracts a JSON object from model output.
 	 *
-	 * @param string $content Raw text from Gemini.
-	 * @return array|null
+	 * @param string $content Model output content.
+	 * @return array|null Decoded JSON array or null when extraction fails.
 	 */
 	private function extract_json( $content ) {
 		return Widget_Builder_AI_JSON_Repair::extract( $content );
 	}
 }
+
+
