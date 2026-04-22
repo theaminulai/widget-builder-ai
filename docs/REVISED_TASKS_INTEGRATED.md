@@ -1,248 +1,187 @@
-# REVISED: AI Widget Builder Tasks - Inside ElementsKit Widget-Builder Module
+# AI Widget Builder Tasks - Widget Builder AI Standalone Plugin
 
 ## Installation & Setup
 
 ### File Locations
 - **WordPress Root:** `d:\wampserver\www\` (or your WordPress installation)
-- **ElementsKit Plugin:** `/wp-content/plugins/elementskit-lite/`
-- **Widget Builder Module:** `/wp-content/plugins/elementskit-lite/modules/widget-builder/`
-- **AI Extension (NEW):** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/`
+- **Plugin:** `/wp-content/plugins/widget-builder-ai/`
+- **Includes:** `/wp-content/plugins/widget-builder-ai/includes/`
 - **React Frontend:** `d:\wampserver\www\widgets-builder-chat/` (existing, stays as-is)
 
 ### API Integration
-- Rest API endpoints in ElementsKit namespace: `/wp-json/elementskit/v1/widget-builder-ai/`
-- Reuse existing ElementsKit REST API structure
+- REST API endpoints: `/wp-json/widget-builder-ai/v1/`
 - Sessions managed by WordPress native methods
-- Widget storage uses existing `elementskit_widget` CPT
+- Widget storage uses `widget_builder_ai` CPT
 
 ---
 
 ## PHASE 1: AI Module Infrastructure (Week 1)
 
-### TASK P1.1: Create Widget-Builder-AI Module Scaffold
+### TASK P1.1: Plugin Entry Point & Bootstrap
 **Priority:** P0 | **Estimated:** 2-3 hours
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/`
+**Location:** `/wp-content/plugins/widget-builder-ai/widget-builder-ai.php`
 
 **Deliverables:**
-1. Module initialization file (init.php)
+1. Plugin main file (widget-builder-ai.php)
 2. Folder structure
-3. Namespace setup (ElementsKit_Lite\Modules\Widget_Builder_AI)
-4. Hook into ElementsKit's module loader
-5. Settings in ElementsKit admin
+3. Global class naming (Widget_Builder_AI_*)
+4. Hook into plugins_loaded
 
 **Code Template:**
 ```php
 <?php
-// /wp-content/plugins/elementskit-lite/modules/widget-builder-ai/init.php
-
-namespace ElementsKit_Lite\Modules\Widget_Builder_AI;
-
-use ElementsKit_Lite\Modules\Widget_Builder_AI\{
-    Includes\AI_Handler,
-    API\REST_Generate,
-    API\REST_Validate,
-};
+// /wp-content/plugins/widget-builder-ai/widget-builder-ai.php
 
 defined('ABSPATH') || exit;
 
-class Init {
-    private static $instance;
+define('WIDGET_BUILDER_AI_VERSION', '1.0.0');
+define('WIDGET_BUILDER_AI_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('WIDGET_BUILDER_AI_PLUGIN_URL', plugin_dir_url(__FILE__));
 
-    public static function instance() {
-        if (!self::$instance) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
+function widget_builder_ai_init_plugin() {
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-cpt.php';
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-assets.php';
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-handler.php';
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-version-manager.php';
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-generator.php';
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-register-widgets.php';
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-api.php';
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-filesystem.php';
+    require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/class-widget-builder-ai-normalizer.php';
 
-    private function __construct() {
-        $this->include_files();
-        $this->init_hooks();
-    }
-
-    private function include_files() {
-        require_once __DIR__ . '/includes/class-ai-handler.php';
-        require_once __DIR__ . '/includes/class-intent-parser.php';
-        require_once __DIR__ . '/includes/class-prompt-builder.php';
-        require_once __DIR__ . '/includes/class-code-parser.php';
-        require_once __DIR__ . '/includes/class-widget-generator.php';
-        require_once __DIR__ . '/api/class-rest-generate.php';
-        require_once __DIR__ . '/api/class-rest-validate.php';
-    }
-
-    private function init_hooks() {
-        // Register REST API
-        add_action('rest_api_init', [$this, 'register_rest_routes']);
-        
-        // Add admin settings
-        add_action('admin_menu', [$this, 'add_settings_page']);
-        
-        // Enqueue scripts
-        add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
-    }
-
-    public function register_rest_routes() {
-        $rest_generate = new REST_Generate();
-        $rest_generate->register();
-        
-        $rest_validate = new REST_Validate();
-        $rest_validate->register();
-    }
-
-    public function add_settings_page() {
-        add_submenu_page(
-            'elementor',
-            'AI Widget Builder Settings',
-            'AI Widget Settings',
-            'manage_options',
-            'elementskit-ai-settings',
-            [$this, 'render_settings_page']
-        );
-    }
-
-    public function enqueue_scripts() {
-        $screen = get_current_screen();
-        if ($screen->id !== 'elementskit_page_elementskit-ai-settings') {
-            return;
-        }
-        
-        wp_enqueue_script(
-            'elementskit-ai-settings',
-            \ElementsKit_Lite::plugin_url() . 
-                'modules/widget-builder-ai/assets/js/settings.js',
-            [],
-            \ElementsKit_Lite::version()
-        );
-    }
-
-    public function render_settings_page() {
-        include __DIR__ . '/templates/admin-settings.php';
-    }
+    new Widget_Builder_AI_CPT();
+    new Widget_Builder_AI_Assets();
+    new Widget_Builder_AI_Register_Widgets();
+    new Widget_Builder_AI_API();
 }
-
-// Initialize on plugins_loaded
-add_action('elementskit/modules/loaded', function() {
-    Init::instance();
-});
+add_action('plugins_loaded', 'widget_builder_ai_init_plugin');
 ```
 
-**File Structure to Create:**
+**File Structure:**
 ```
 widget-builder-ai/
-├── init.php
+├── widget-builder-ai.php
 ├── includes/
+│   ├── class-widget-builder-ai-cpt.php
+│   ├── class-widget-builder-ai-assets.php
+│   ├── class-widget-builder-ai-handler.php
+│   ├── class-widget-builder-ai-version-manager.php
+│   ├── class-widget-builder-ai-generator.php
+│   ├── class-widget-builder-ai-register-widgets.php
+│   ├── class-widget-builder-ai-api.php
+│   ├── class-widget-builder-ai-filesystem.php
+│   ├── class-widget-builder-ai-normalizer.php
+│   ├── class-widget-builder-ai-claude-adapter.php
+│   ├── class-widget-builder-ai-openai-adapter.php
+│   └── class-widget-builder-ai-gemini-adapter.php
+├── build/
+├── src/
+└── docs/
+```
+**Feature Plan File Structure:**
+```
+widget-builder-ai/
+├── widget-builder-ai.php
+├── includes/
+│	├── adapters/
+│	│   ├── class-openai-adapter.php
+│	│   └── class-claude-ai-adapter.php
+│	├── api/
+│	│   ├── class-rest-generate.php
+│	│   ├── class-rest-validate.php
+│	│   └── class-rest-preview.php
+│	├── templates/
+│	│   ├── admin-settings.php
+│	│   └── prompts/
+│	│       ├── system-prompt.txt
+│	│       ├── widget-schema.json
+│	│       └── examples.json
 │   ├── class-ai-handler.php
 │   ├── class-intent-parser.php
 │   ├── class-prompt-builder.php
 │   ├── class-code-parser.php
 │   ├── class-widget-generator.php
 │   └── class-code-validator.php
-├── adapters/
-│   ├── class-openai-adapter.php
-│   └── class-claude-ai-adapter.php
-├── api/
-│   ├── class-rest-generate.php
-│   ├── class-rest-validate.php
-│   └── class-rest-preview.php
-├── templates/
-│   ├── admin-settings.php
-│   └── prompts/
-│       ├── system-prompt.txt
-│       ├── widget-schema.json
-│       └── examples.json
-├── assets/
-│   └── js/
-│       └── settings.js
+├── src/
+│   ├── api/
+│   ├── app.jsx
+│   ├── components/
+│   ├── index.jsx
+│   └── main.jsx
+├── readme.txt
 └── README.md
 ```
-
 ---
 
-### TASK P1.2: Create REST API Endpoints in ElementsKit Namespace
+### TASK P1.2: REST API Endpoints
 **Priority:** P0 | **Estimated:** 3-4 hours  
 **Depends On:** P1.1
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/api/`
+**Location:** `/wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-api.php`
 
-**Routes to Create:**
-1. `POST /wp-json/elementskit/v1/ai-generate` - Generate widget from prompt
-2. `POST /wp-json/elementskit/v1/ai-validate` - Validate generated code
-3. `GET /wp-json/elementskit/v1/ai-preview/:id` - Preview widget
+**Routes:**
+1. `POST /wp-json/widget-builder-ai/v1/generate` - Generate widget from prompt
+2. `POST /wp-json/widget-builder-ai/v1/save` - Save widget files
+3. `POST /wp-json/widget-builder-ai/v1/save/:id` - Save widget files by ID
+4. `GET /wp-json/widget-builder-ai/v1/widget/:id` - Get widget payload
+5. `GET /wp-json/widget-builder-ai/v1/widget/:id/versions` - Get version history
+6. `POST /wp-json/widget-builder-ai/v1/widget/:id/rollback` - Rollback to version
 
 **Code Template:**
 ```php
 <?php
-// /wp-content/plugins/elementskit-lite/modules/widget-builder-ai/api/class-rest-generate.php
+// /wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-api.php
 
-namespace ElementsKit_Lite\Modules\Widget_Builder_AI\API;
+class Widget_Builder_AI_API {
 
-use ElementsKit_Lite\Modules\Widget_Builder_AI\Includes\Widget_Generator;
+    private $generator;
 
-class REST_Generate {
-    public function register() {
-        register_rest_route('elementskit/v1', '/ai-generate', [
+    public function __construct() {
+        $this->generator = new Widget_Builder_AI_Generator();
+        add_action('rest_api_init', [$this, 'register_routes']);
+    }
+
+    public function register_routes() {
+        register_rest_route('widget-builder-ai/v1', '/generate', [
             'methods' => 'POST',
-            'callback' => [$this, 'handle_generate'],
-            'permission_callback' => [$this, 'check_permission'],
-            'args' => [
-                'message' => [
-                    'required' => true,
-                    'type' => 'string',
-                    'validate_callback' => function($param) {
-                        return is_string($param) && strlen($param) > 0;
-                    },
-                ],
-                'widget_config' => [
-                    'required' => false,
-                    'type' => 'object',
-                ],
-                'model' => [
-                    'required' => false,
-                    'type' => 'string',
-                    'enum' => ['openai'],
-                    'default' => 'openai',
-                ],
-            ],
+            'callback' => [$this, 'generate'],
+            'permission_callback' => [$this, 'can_manage'],
+        ]);
+
+        register_rest_route('widget-builder-ai/v1', '/widget/(?P<id>\d+)', [
+            'methods' => 'GET',
+            'callback' => [$this, 'widget'],
+            'permission_callback' => [$this, 'can_manage'],
+        ]);
+
+        register_rest_route('widget-builder-ai/v1', '/widget/(?P<id>\d+)/rollback', [
+            'methods' => 'POST',
+            'callback' => [$this, 'rollback'],
+            'permission_callback' => [$this, 'can_manage'],
         ]);
     }
 
-    public function handle_generate(\WP_REST_Request $request) {
-        try {
-            $params = $request->get_json_params();
-            
-            // Validate
-            if (empty($params['message'])) {
-                return new \WP_REST_Response([
-                    'success' => false,
-                    'error' => 'Message is required',
-                ], 400);
-            }
+    public function generate(WP_REST_Request $request) {
+        $params = $request->get_json_params();
 
-            // Generate widget
-            $generator = new Widget_Generator();
-            $result = $generator->generate($params['message'], $params['model'] ?? 'openai');
-
-            if (!$result['success']) {
-                return new \WP_REST_Response($result, 500);
-            }
-
-            return new \WP_REST_Response([
-                'success' => true,
-                'widget_id' => $result['widget_id'],
-                'message' => $result['message'],
-                'files' => $result['files'] ?? [],
-                'preview_url' => admin_url('post.php?post=' . $result['widget_id'] . '&action=elementor'),
-            ]);
-
-        } catch (\Exception $e) {
-            error_log('Widget generation error: ' . $e->getMessage());
-            return new \WP_REST_Response([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+        if (empty($params['message'])) {
+            return new WP_REST_Response(['success' => false, 'error' => 'Message is required'], 400);
         }
+
+        $result = $this->generator->generate(
+            $params['message'],
+            $params['model'] ?? 'gpt-4.1-mini',
+            absint($params['widget_id'] ?? 0),
+            $params['widget_config'] ?? []
+        );
+
+        if (is_wp_error($result)) {
+            return new WP_REST_Response(['success' => false, 'error' => $result->get_error_message()], 400);
+        }
+
+        return new WP_REST_Response($result);
     }
 
-    public function check_permission() {
+    public function can_manage() {
         return current_user_can('manage_options');
     }
 }
@@ -255,7 +194,7 @@ class REST_Generate {
 ### TASK P2.1: AI Handler with OpenAI Adapter
 **Priority:** P0 | **Estimated:** 4-5 hours  
 **Depends On:** P1.1
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/includes/`
+**Location:** `/wp-content/plugins/widget-builder-ai/includes/`
 
 **Creates:**
 - Abstract AI_Handler class
@@ -270,7 +209,7 @@ From previous detailed spec (see DEVELOPMENT_TASKS.md)
 ### TASK P2.2: Intent Parser (Natural Language Understanding)
 **Priority:** P1 | **Estimated:** 3-4 hours  
 **Depends On:** P1.1
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/includes/class-intent-parser.php`
+**Location:** `/wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-handler.php`
 
 From previous detailed spec
 
@@ -279,7 +218,7 @@ From previous detailed spec
 ### TASK P2.3: Prompt Builder & Parser
 **Priority:** P1 | **Estimated:** 4-5 hours  
 **Depends On:** P1.1
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/includes/`
+**Location:** `/wp-content/plugins/widget-builder-ai/includes/`
 
 Creates:
 - Prompt_Builder class
@@ -293,52 +232,52 @@ Creates:
 ### TASK P3.1: Widget Generator Service
 **Priority:** P0 | **Estimated:** 4 hours  
 **Depends On:** P2.1, P2.2, P2.3
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/includes/class-widget-generator.php`
+**Location:** `/wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-generator.php`
 
 **Integration Points:**
-- Use ElementsKit's existing Widget_Writer class
-- Create posts via existing Widget_Builder CPT
-- Reuse file generation
+- Uses `Widget_Builder_AI_Filesystem` for file writing
+- Creates posts via `widget_builder_ai` CPT
+- Stores files via `Widget_Builder_AI_Generator::META_FILES` post meta
 
 **Key Code:**
 ```php
-// Reuse ElementsKit's Widget_Writer
-use ElementsKit_Lite\Modules\Widget_Builder\Controls\Widget_Writer;
+// /wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-generator.php
 
-public function generate($message, $model = 'openai') {
-    try {
-        // 1-4. Parse, prompt, call AI, parse response
-        // ... (from earlier spec)
-        
-        // 5. Create widget post
-        $widget_id = wp_insert_post([
-            'post_title' => $config['title'],
-            'post_type' => 'elementskit_widget',
-            'post_status' => 'publish',
+class Widget_Builder_AI_Generator {
+
+    const META_CHAT_HISTORY  = 'widget_builder_ai_chat_history';
+    const META_FILES         = 'widget_builder_ai_files';
+    const META_WIDGET_CONFIG = 'widget_builder_ai_widget_config';
+
+    public function generate($message, $model = 'gpt-4.1-mini', $widget_id = 0, $widget_config = []) {
+        // 1. Call AI handler
+        // 2. Parse response into files
+        // 3. Create or update widget post
+        if (!$widget_id) {
+            $widget_id = wp_insert_post([
+                'post_title'  => $widget_config['title'] ?? 'AI Widget',
+                'post_type'   => 'widget_builder_ai',
+                'post_status' => 'publish',
+            ]);
+        }
+
+        // 4. Save files to post meta & filesystem
+        update_post_meta($widget_id, self::META_FILES, $files);
+        update_post_meta($widget_id, self::META_WIDGET_CONFIG, $widget_config);
+
+        // 5. Save chat history
+        $this->add_message_to_history($widget_id, [
+            'timestamp' => time(),
+            'role'      => 'user',
+            'content'   => $message,
+            'model'     => $model,
         ]);
 
-        // 6. Save metadata
-        update_post_meta(
-            $widget_id,
-            'elementskit_custom_widget_data',
-            $config
-        );
-
-        // 7. Generate files using ElementsKit's Widget_Writer
-        $writer = new Widget_Writer($config, $widget_id);
-        $wp_filesystem = \ElementsKit_Lite\Modules\Widget_Builder\Widget_File::get_wp_filesystem_pointer();
-        
-        $writer->start_backing($wp_filesystem);
-        $writer->finish_backing($wp_filesystem);
-
         return [
-            'success' => true,
+            'success'   => true,
             'widget_id' => $widget_id,
-            'message' => $ai_response,
-            'files' => $parsed,
+            'files'     => $files,
         ];
-    } catch (\Exception $e) {
-        return ['success' => false, 'error' => $e->getMessage()];
     }
 }
 ```
@@ -348,7 +287,7 @@ public function generate($message, $model = 'openai') {
 ### TASK P3.2: Code Validator
 **Priority:** P1 | **Estimated:** 2-3 hours  
 **Depends On:** P2.3
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/includes/class-code-validator.php`
+**Location:** `/wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-normalizer.php`
 
 From previous detailed spec
 
@@ -362,8 +301,7 @@ From previous detailed spec
 **Location:** `/src/hooks/useAIChat.js` (your React app)
 
 **Key Changes:**
-- API endpoint: `http://localhost:8080/wp-json/elementskit/v1/ai-generate`
-- Request format matches ElementsKit endpoint
+- API endpoint: `http://localhost:8080/wp-json/widget-builder-ai/v1/generate`
 - Nonce from WordPress global
 
 **Code:**
@@ -372,7 +310,7 @@ From previous detailed spec
 const API_BASE_URL = 'http://localhost:8080';
 
 const response = await fetch(
-  `${API_BASE_URL}/wp-json/elementskit/v1/ai-generate`,
+  `${API_BASE_URL}/wp-json/widget-builder-ai/v1/generate`,
   {
     method: 'POST',
     headers: {
@@ -465,20 +403,21 @@ Create:
 
 ---
 
-## KEY DIFFERENCES FROM SEPARATE PLUGIN
+## ARCHITECTURE OVERVIEW
 
-✅ **Uses ElementsKit's existing:**
-- Namespace: `ElementsKit_Lite\Modules\Widget_Builder_AI`
-- REST API structure: `/wp-json/elementskit/v1/`
-- Widget storage: `elementskit_widget` CPT
-- File generation: Widget_Writer class
-- Admin panels
+✅ **Standalone plugin with:**
+- Global class naming: `Widget_Builder_AI_*`
+- REST API namespace: `widget-builder-ai/v1`
+- Custom CPT: `widget_builder_ai`
+- Own file system handler: `Widget_Builder_AI_Filesystem`
+- Post meta keys prefixed: `widget_builder_ai_*`
+- Admin submenu under Essential Addons (`eeal-settings`)
 
-❌ **NOT creating:**
-- New plugin file
-- Separate plugin directory
-- Duplicate REST API structure
-- New CPT or tables
+❌ **Does NOT depend on:**
+- ElementsKit or ElementsKit Lite
+- Elementor's Widget_Writer class
+- `elementskit_widget` CPT
+- `/wp-json/elementskit/v1/` namespace
 
 ---
 

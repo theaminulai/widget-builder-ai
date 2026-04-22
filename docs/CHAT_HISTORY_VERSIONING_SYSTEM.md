@@ -7,7 +7,7 @@
 **Priority:** P0 | **Estimated:** 2-3 hours  
 **Depends On:** P3.1 | **Blocks:** P4.5
 
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/includes/class-widget-generator.php`
+**Location:** `/wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-generator.php`
 
 **Requirements:**
 - Save chat conversation when widget is generated
@@ -25,7 +25,7 @@
 **Data Structure:**
 ```json
 {
-  "ekit_widget_chat_history": [
+  "widget_builder_ai_chat_history": [
     {
       "timestamp": 1712102400,
       "role": "user",
@@ -79,7 +79,7 @@ public function generate($message, $model = 'openai', $widget_id = null) {
         if (!$is_update) {
             $widget_id = wp_insert_post([
                 'post_title' => $config['title'],
-                'post_type' => 'elementskit_widget',
+                'post_type' => 'widget_builder_ai',
                 'post_status' => 'publish',
             ]);
         }
@@ -115,14 +115,14 @@ public function generate($message, $model = 'openai', $widget_id = null) {
 }
 
 private function get_chat_history($widget_id) {
-    $history = get_post_meta($widget_id, 'ekit_widget_chat_history', true);
+    $history = get_post_meta($widget_id, 'widget_builder_ai_chat_history', true);
     return is_array($history) ? $history : [];
 }
 
 private function add_message_to_history($widget_id, $message) {
     $history = $this->get_chat_history($widget_id);
     $history[] = $message;
-    update_post_meta($widget_id, 'ekit_widget_chat_history', $history);
+    update_post_meta($widget_id, 'widget_builder_ai_chat_history', $history);
 }
 ```
 
@@ -132,7 +132,7 @@ private function add_message_to_history($widget_id, $message) {
 **Priority:** P0 | **Estimated:** 3-4 hours  
 **Depends On:** P3.1 | **Blocks:** P4.5, P4.6
 
-**Location:** `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/includes/class-widget-generator.php`
+**Location:** `/wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-generator.php`
 
 **Requirements:**
 - Track multiple versions of generated files
@@ -151,7 +151,7 @@ private function add_message_to_history($widget_id, $message) {
 **Data Structure:**
 ```json
 {
-  "ekit_widget_versions": {
+  "widget_builder_ai_versions": {
     "1": {
       "timestamp": 1712102405,
       "ai_model": "gpt-4",
@@ -171,8 +171,8 @@ private function add_message_to_history($widget_id, $message) {
       "changes_summary": "Added success/error states"
     }
   },
-  "ekit_widget_current_version": 2,
-  "ekit_widget_version_count": 2
+  "widget_builder_ai_current_version": 2,
+  "widget_builder_ai_version_count": 2
 }
 ```
 
@@ -188,14 +188,12 @@ private function add_message_to_history($widget_id, $message) {
 <?php
 // New file: class-version-manager.php
 
-namespace ElementsKit_Lite\Modules\Widget_Builder_AI\Includes;
-
-class Version_Manager {
+class Widget_Builder_AI_Version_Manager {
     const MAX_VERSIONS = 10;
 
     public function create_version($widget_id, $files, $ai_model, $summary = '') {
         // Get next version number
-        $versions = get_post_meta($widget_id, 'ekit_widget_versions', true) ?? [];
+        $versions = get_post_meta($widget_id, 'widget_builder_ai_versions', true) ?? [];
         $version_num = count($versions) + 1;
         
         // Create version data
@@ -216,24 +214,24 @@ class Version_Manager {
         }
         
         // Save to post meta
-        update_post_meta($widget_id, 'ekit_widget_versions', $versions);
-        update_post_meta($widget_id, 'ekit_widget_current_version', $version_num);
+        update_post_meta($widget_id, 'widget_builder_ai_versions', $versions);
+        update_post_meta($widget_id, 'widget_builder_ai_current_version', $version_num);
         
         return $version_num;
     }
 
     public function get_version($widget_id, $version_num) {
-        $versions = get_post_meta($widget_id, 'ekit_widget_versions', true) ?? [];
+        $versions = get_post_meta($widget_id, 'widget_builder_ai_versions', true) ?? [];
         return $versions[$version_num] ?? null;
     }
 
     public function get_current_version($widget_id) {
-        $current = get_post_meta($widget_id, 'ekit_widget_current_version', true) ?? 1;
+        $current = get_post_meta($widget_id, 'widget_builder_ai_current_version', true) ?? 1;
         return $this->get_version($widget_id, $current);
     }
 
     public function get_all_versions($widget_id) {
-        return get_post_meta($widget_id, 'ekit_widget_versions', true) ?? [];
+        return get_post_meta($widget_id, 'widget_builder_ai_versions', true) ?? [];
     }
 
     public function get_versions_list($widget_id) {
@@ -247,7 +245,7 @@ class Version_Manager {
                 'date' => wp_date('M j, Y H:i', $version['timestamp']),
                 'model' => $version['ai_model'],
                 'summary' => $version['changes_summary'],
-                'is_current' => $num === get_post_meta($widget_id, 'ekit_widget_current_version', true),
+                'is_current' => $num === get_post_meta($widget_id, 'widget_builder_ai_current_version', true),
             ];
         }
         
@@ -289,7 +287,7 @@ class Version_Manager {
 
 **API Endpoint Needed:**
 ```
-GET /wp-json/elementskit/v1/ai-widget/:id
+GET /wp-json/widget-builder-ai/v1/widget/:id
 Response: {
   "widget_id": 123,
   "title": "Button Widget",
@@ -306,7 +304,7 @@ Response: {
 
 class REST_Widget {
     public function register() {
-        register_rest_route('elementskit/v1', '/ai-widget/(?P<id>\d+)', [
+        register_rest_route('widget-builder-ai/v1', '/widget/(?P<id>\d+)', [
             'methods' => 'GET',
             'callback' => [$this, 'get_widget'],
             'permission_callback' => [$this, 'check_permission'],
@@ -318,7 +316,7 @@ class REST_Widget {
         
         // Verify widget exists
         $post = get_post($widget_id);
-        if (!$post || $post->post_type !== 'elementskit_widget') {
+        if (!$post || $post->post_type !== 'widget_builder_ai') {
             return new \WP_REST_Response(
                 ['success' => false, 'error' => 'Widget not found'],
                 404
@@ -326,10 +324,10 @@ class REST_Widget {
         }
 
         // Get chat history
-        $chat_history = get_post_meta($widget_id, 'ekit_widget_chat_history', true) ?? [];
+        $chat_history = get_post_meta($widget_id, 'widget_builder_ai_chat_history', true) ?? [];
         
         // Get current version files
-        $version_mgr = new Version_Manager();
+        $version_mgr = new Widget_Builder_AI_Version_Manager();
         $current = $version_mgr->get_current_version($widget_id);
 
         return new \WP_REST_Response([
@@ -337,7 +335,7 @@ class REST_Widget {
             'widget_id' => $widget_id,
             'title' => $post->post_title,
             'chat_history' => $chat_history,
-            'current_version' => get_post_meta($widget_id, 'ekit_widget_current_version', true) ?? 1,
+            'current_version' => get_post_meta($widget_id, 'widget_builder_ai_current_version', true) ?? 1,
             'files' => $current['files'] ?? [],
             'versions' => $version_mgr->get_versions_list($widget_id),
         ]);
@@ -368,8 +366,8 @@ export const useAIChat = () => {
         addMessage({ role: 'user', content: message });
 
         const endpoint = widgetId
-          ? `/wp-json/elementskit/v1/ai-generate?widget_id=${widgetId}`
-          : `/wp-json/elementskit/v1/ai-generate`;
+          ? `/wp-json/widget-builder-ai/v1/generate?widget_id=${widgetId}`
+          : `/wp-json/widget-builder-ai/v1/generate`;
 
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -444,7 +442,7 @@ const ChatSection = ({ widgetId = null }) => {
   // NEW: Load chat history if editing
   useEffect(() => {
     if (widgetId) {
-      fetch(`/wp-json/elementskit/v1/ai-widget/${widgetId}`)
+      fetch(`/wp-json/widget-builder-ai/v1/widget/${widgetId}`)
         .then(r => r.json())
         .then(data => {
           if (data.success) {
@@ -525,7 +523,7 @@ const VersionHistory = ({ widgetId }) => {
   useEffect(() => {
     if (!widgetId) return;
 
-    fetch(`/wp-json/elementskit/v1/ai-widget/${widgetId}`)
+    fetch(`/wp-json/widget-builder-ai/v1/widget/${widgetId}`)
       .then(r => r.json())
       .then(data => {
         if (data.success) {
@@ -608,7 +606,7 @@ export default VersionHistory;
 **Depends On:** P3.1C, P4.6 | **Blocks:** None
 
 **Location:** 
-- Backend: `/wp-content/plugins/elementskit-lite/modules/widget-builder-ai/includes/class-version-manager.php`
+- Backend: `/wp-content/plugins/widget-builder-ai/includes/class-widget-builder-ai-version-manager.php`
 - Frontend: `/src/components/editor/VersionHistory.jsx`
 
 **Requirements:**
@@ -628,7 +626,7 @@ export default VersionHistory;
 
 **API Endpoint:**
 ```
-POST /wp-json/elementskit/v1/ai-widget/:id/rollback
+POST /wp-json/widget-builder-ai/v1/widget/:id/rollback
 Body: { "version": 2 }
 Response: {
   "success": true,
@@ -643,9 +641,9 @@ Response: {
 <?php
 // In init.php (register endpoint)
 add_action('rest_api_init', function() {
-    register_rest_route('elementskit/v1', '/ai-widget/(?P<id>\d+)/rollback', [
+    register_rest_route('widget-builder-ai/v1', '/widget/(?P<id>\d+)/rollback', [
         'methods' => 'POST',
-        'callback' => [new Version_Manager(), 'rollback_version'],
+        'callback' => [new Widget_Builder_AI_Version_Manager(), 'rollback_version'],
         'permission_callback' => function() {
             return current_user_can('manage_options');
         },
@@ -731,7 +729,7 @@ const handleRollback = async (version) => {
 
   try {
     const response = await fetch(
-      `/wp-json/elementskit/v1/ai-widget/${widgetId}/rollback`,
+      `/wp-json/widget-builder-ai/v1/widget/${widgetId}/rollback`,
       {
         method: 'POST',
         headers: {
