@@ -454,14 +454,4 @@ class Widget_Builder_AI_Generator {
 
 		return '';
 	}
-
-	/**
-	 * Checks whether provided content is non-empty after trimming.
-	 *
-	 * @param string $content Raw content.
-	 * @return bool True when content has meaningful characters.
-	 */
-	private function has_meaningful_content( $content ) {
-		return '' !== trim( (string) $content );
-	}
 }
