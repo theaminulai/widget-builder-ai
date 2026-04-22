@@ -4,8 +4,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+
+/**
+ * Main plugin class for Widget Builder AI.
+ *
+ * Handles initialization and loading of all core components, adapters, and admin features.
+ *
+ * @package Widget_Builder_AI
+ */
 class Widget_Builder_AI_Plugin {
 
+	/**
+	 * Initialize the Widget Builder AI plugin.
+	 *
+	 * Loads all required files, registers admin menus, assets, widgets, adapters, and REST API endpoints.
+	 *
+	 * @return void
+	 */
 	public static function init() {
 		require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/admin/class-cpt.php';
 		require_once WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/admin/class-assets.php';
