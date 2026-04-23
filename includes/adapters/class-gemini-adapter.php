@@ -122,10 +122,6 @@ class Widget_Builder_AI_Gemini_Adapter {
 	 * @return string Prompt text.
 	 */
 	private function build_system_prompt() {
-		$prompt_file = WIDGET_BUILDER_AI_PLUGIN_DIR . 'includes/templates/prompts/system-prompt.txt';
-		if ( file_exists( $prompt_file ) ) {
-			return trim( file_get_contents( $prompt_file ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		}
 		return 'You are an expert WordPress and Elementor widget developer. ' .
 			'Return ONLY a JSON object with exactly four keys: "php", "css", "js", "summary". No markdown, no extra text. ' .
 
