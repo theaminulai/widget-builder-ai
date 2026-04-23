@@ -6,11 +6,12 @@
 	transition: background 0.2s;
 
 	&:hover {
-		background: rgba(0, 0, 0, 0.02);
+		filter: brightness(0.97);
 	}
 
 	&.user {
 		flex-direction: row-reverse;
+		background: #f3f4f6;
 
 		.message-avatar {
 			background: #3858e9;
@@ -33,6 +34,8 @@
 	}
 
 	&.assistant {
+		background: #f0fdf4;
+
 		.message-avatar {
 			background: #7b90ff;
 			color: #ffffff;

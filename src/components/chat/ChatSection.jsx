@@ -344,18 +344,10 @@ const ChatSection = () => {
 								title="Select AI model"
 							>
 								<option value="">Select a model</option>
-								{ /* <option value="gemini-3-flash">Gemini 3 Flash</option> */ }
-								<option value="gemini-2.5-flash">
-									{ ' ' }
-									Gemini 2.5 Flash
-								</option>
+								<option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
 								{ /* <option value="gemini-3.1-pro"> Gemini 3.1 Pro</option> */ }
-								<option value="claude-opus-4-7">
-									Claude 4.5 Opus{ ' ' }
-								</option>
-								<option value="claude-sonnet-4-6">
-									Claude 4.6 Sonnet{ ' ' }
-								</option>
+								<option value="claude-opus-4-7">Claude 4.5 Opus</option>
+								<option value="claude-sonnet-4-6">Claude 4.6 Sonnet</option>
 								<option value="gpt-4o">GPT-4o</option>
 								<option value="gpt-5-codex">GPT-5.3 Codex</option> 
 							</select>
