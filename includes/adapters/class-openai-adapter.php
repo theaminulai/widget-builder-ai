@@ -429,6 +429,8 @@ class Widget_Builder_AI_OpenAI_Adapter {
 				'In CSS, always write rules for both: .wbai-{slug}__icon i { ... } and .wbai-{slug}__icon svg { ... } ' .
 				'For SVG specifically, use "fill: currentColor;" so it inherits the CSS color property. ' .
 				'Never target only the i tag alone when an icon control is present. ' .
+				'When you give the option to change the icon from the control, then render it with this icon manager, otherwise you will use svg instead of icon which will be static values, but in case of changeable values, use the icon manager.' .
+				'@see https://github.com/elementor/elementor-developers-docs/blob/master/src/editor-controls/control-icons.md' .
 
 			'After the use statements, reference all Elementor classes WITHOUT the \Elementor\ prefix. Example: extends Widget_Base, Controls_Manager::TEXT, new Repeater(), Group_Control_Typography::get_type(). ' .
 			'Use $this->get_settings_for_display() inside render(). ' .
@@ -469,9 +471,9 @@ class Widget_Builder_AI_OpenAI_Adapter {
 			'DIMENSIONS – top/right/bottom/left fields with unit (use with selectors). ' .
 			'URL – URL input with is_external and nofollow options. ' .
 			'MEDIA – image/file picker (returns array with url and id). ' .
-			'ICONS – icon picker (render with \Elementor\Icons_Manager::render_icon()). ' .
+			'ICONS – Elementor\Controls_Manager::ICONS icon picker, (render with \Elementor\Icons_Manager::render_icon()). ' .
 			'CODE – code editor (set language: html/css/js/php). ' .
-			'REPEATER – repeatable group of controls. ' .
+			'REPEATER – repeatable group of controls. @see https://github.com/elementor/elementor-developers-docs/blob/master/src/editor-controls/control-repeater.md' .
 			'HEADING – decorative section heading (UI only, no value). ' .
 			'DIVIDER – horizontal rule separator (UI only). ' .
 			'HIDDEN – hidden field with a fixed default value. ' .
